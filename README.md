@@ -60,9 +60,24 @@ pnpm db:generate
 # 6. Apply migrations + triggers
 pnpm db:migrate
 
-# 7. Start the API (http://localhost:3000)
-pnpm dev:api
+# 7. Seed Better Auth users (admin / doctor / patient / receptionist)
+pnpm --filter @project/api seed
+
+# 8. Start API (http://localhost:3000) + Web (http://localhost:3001)
+pnpm dev
 ```
+
+### Test credentials
+
+Seeded via `apps/api/src/seed-auth.ts`. Password for all accounts: `password123`.
+
+| Role | Email |
+|---|---|
+| Admin | `admin@clinic.com` |
+| Doctor | `dra.garcia@clinic.com`, `dr.martinez@clinic.com` |
+| Receptionist | `recep1@clinic.com`, `recep2@clinic.com` |
+
+New accounts registered via `/register` default to `patient`.
 
 ## Environment Variables
 
@@ -83,10 +98,11 @@ Run from the repository root.
 ### Workspace-wide
 
 ```bash
-pnpm dev            # turbo dev — runs every app's dev task
-pnpm dev:api        # only the API
-pnpm dev:web        # only the web app
-pnpm build          # turbo build
+pnpm dev                        # turbo dev — runs every app's dev task
+pnpm dev:api                    # only the API (http://localhost:3000)
+pnpm dev:web                    # only the web app (http://localhost:3001)
+pnpm build                      # turbo build
+pnpm --filter @project/api seed # populate Better Auth users (admin/doctor/receptionist)
 ```
 
 ### Database
@@ -154,6 +170,40 @@ All imports are explicit file paths. The one exception is `packages/db/src/schem
 ### Single source of truth for identity
 
 `packages/db/src/schema/iam.schema.ts` owns `Users`, `Sessions`, `Accounts`, `Verifications`. The business `Users` table doubles as Better Auth's `user` model — mapped via `drizzleAdapter(db, { schema: { user: Users, ... }})` in `packages/auth/src/auth.ts`.
+
+### Frontend (`apps/web/src/`)
+
+Feature-Sliced Design + Next.js App Router:
+
+```
+src/
+├── app/                # Next.js routes
+│   ├── (auth)/         # /login, /register — wrapped with requireGuest()
+│   └── dashboard/      # requireAuth() in layout; per-role layouts use requireRole([...])
+├── views/              # page-level compositions (DashboardAdmin, Login, etc.)
+├── widgets/            # composite UI (DashboardNav, LandingHero)
+├── features/           # interactive units (LoginForm, RegisterForm, SignOutButton)
+├── entities/           # domain models + mappers (User, toUser)
+├── shared/             # cross-cutting utilities
+│   └── auth/           # getServerSession, guards.server.ts, authClient
+├── components/ui/      # shadcn primitives
+├── lib/                # helpers
+└── proxy.ts            # Next.js 16 edge proxy (formerly middleware.ts)
+```
+
+### Auth flow
+
+- **Client**: `packages/auth/src/auth-client.ts` exposes `signIn`, `signUp`, `signOut`, `useSession` via Better Auth's React client.
+- **Server**: `packages/auth/src/auth.ts` is the single Better Auth instance used by both API (`apps/api`) and Next.js server components (`apps/web`). They share `BETTER_AUTH_SECRET` so session cookies signed by the API verify on the Next.js side.
+- **Route guards** (`apps/web/src/shared/auth/guards.server.ts`):
+  - `requireAuth()` — redirects to `/login` if no session.
+  - `requireRole(roles)` — redirects to `/dashboard` if the session's role isn't allowed.
+  - `requireGuest()` — redirects to `/dashboard` if a valid session exists.
+- **Proxy** (`apps/web/src/proxy.ts`): does only a fast cookie-presence check on `/dashboard/*`. Full session validation happens in layouts/pages so a stale cookie can't create redirect loops.
+
+### Env loading for Next.js
+
+`apps/web/next.config.ts` calls `loadEnvConfig(path.resolve(__dirname, '../..'))` from `@next/env`, so Next.js picks up `BETTER_AUTH_SECRET`, `NEXT_PUBLIC_*`, etc. from the **root `.env`** — the same file `bun --env-file=../../.env` uses for the API.
 
 ## Reset / Troubleshooting
 

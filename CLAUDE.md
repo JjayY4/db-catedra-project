@@ -51,6 +51,15 @@ Create distinctive, production-grade frontend interfaces with high design qualit
 
 - `.claude/skills/frontend-design/SKILL.md`
 
+## Frontend Architecture — FSD + Next.js App Router
+
+Feature-Sliced Design architecture for apps/web. Use when creating pages, features, widgets, or entities; deciding where code belongs; scaffolding new modules; or asked about frontend folder structure.
+
+- `.claude/skills/frontend-architecture/SKILL.md`
+- `.claude/skills/frontend-architecture/references/layers.md`: Detailed rules and examples for each FSD layer (shared, entities, features, widgets, pages).
+- `.claude/skills/frontend-architecture/references/patterns.md`: Common patterns — auth guard, forms, Server Actions, TanStack Query, Suspense, modals.
+- `.claude/skills/frontend-architecture/references/folder-templates.md`: Copy-paste folder scaffolds for entity, feature, widget, page, and shared/ui slices.
+
 ## Next.js Best Practices
 
 Next.js best practices - file conventions, RSC boundaries, data patterns, async APIs, metadata, error handling, route handlers, image/font optimization, bundling
@@ -304,5 +313,11 @@ Generate boilerplate for this project's backend: modules, use cases, repositorie
 - `.claude/skills/backend-architecture/references/layers.md`: Full file templates for every layer — entity, repository interface, DTOs, use case, Drizzle repo impl, module, routes
 - `.claude/skills/backend-architecture/references/inversify.md`: Inversify IoC patterns, abstract class tokens, container lifecycle, module registration, scope rules
 - `.claude/skills/backend-architecture/references/error-handling.md`: AppError, global handler in app.ts, auth macro, status codes, never-catch-in-routes pattern
+
+## Next.js + Elysia Client (Eden Treaty)
+
+Connect the Next.js frontend (apps/web) to the standalone Elysia API (apps/api) using Eden Treaty for end-to-end type safety. Use when calling the API from Next.js, setting up the Eden Treaty client singleton, fetching in Server Components or Client Components, writing Server Actions, or asked "how do I call the API from the frontend".
+
+- `.agents/skills/next-elysia-client/SKILL.md`
 
 <!-- autoskills:end -->

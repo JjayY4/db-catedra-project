@@ -4,7 +4,6 @@ import type { AccountStatus } from '@project/enums/src/account-status.enum'
 export interface IUser {
   id: string
   email: string
-  passwordHash: string | null
   role: UserRole
   accountStatus: AccountStatus
   createdAt: Date

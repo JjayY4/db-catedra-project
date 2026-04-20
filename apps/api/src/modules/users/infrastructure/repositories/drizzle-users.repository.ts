@@ -6,7 +6,6 @@ import { UserRole } from '@project/enums/src/user-role.enum'
 import { AccountStatus } from '@project/enums/src/account-status.enum'
 import { IUsersRepository } from '../../domain/interfaces/users.repository'
 import type { IUser } from '../../domain/entities/user.entity'
-import type { CreateUserInput } from '../../application/dtos/inputs/create-user.input'
 
 type UserRow = typeof Users.$inferSelect
 
@@ -14,7 +13,6 @@ function toUser(row: UserRow): IUser {
   return {
     id:            row.id,
     email:         row.email,
-    passwordHash:  row.passwordHash,
     role:          row.role as unknown as UserRole,
     accountStatus: row.accountStatus as unknown as AccountStatus,
     createdAt:     row.createdAt,
@@ -31,21 +29,6 @@ export class DrizzleUsersRepository extends IUsersRepository {
   findByEmail = async (email: string, tx: TxClient): Promise<IUser | null> => {
     const row = await tx.query.Users.findFirst({ where: eq(Users.email, email) })
     return row ? toUser(row) : null
-  }
-
-  create = async (
-    data: CreateUserInput & { passwordHash: string },
-    tx: TxClient,
-  ): Promise<IUser> => {
-    const [row] = await tx
-      .insert(Users)
-      .values({
-        email:        data.email,
-        passwordHash: data.passwordHash,
-        role:         data.role as UserRow['role'],
-      })
-      .returning()
-    return toUser(row)
   }
 
   deactivate = async (id: string, tx: TxClient): Promise<void> => {

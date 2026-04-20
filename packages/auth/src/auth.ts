@@ -17,9 +17,26 @@ export const auth = betterAuth({
       verification: Verifications,
     },
   }),
+  user: {
+    additionalFields: {
+      role: {
+        type: ['admin', 'doctor', 'patient', 'receptionist'],
+        required: false,
+        defaultValue: 'patient',
+        input: false,
+      },
+      accountStatus: {
+        type: ['active', 'inactive'],
+        required: false,
+        defaultValue: 'active',
+        input: false,
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    autoSignIn: false,
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7,
@@ -37,7 +54,7 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: process.env.NODE_ENV === 'production',
     database: {
-      generateId: 'uuid',
+      generateId: () => crypto.randomUUID(),
     },
     ipAddress: {
       ipAddressHeaders: ['x-forwarded-for', 'x-real-ip', 'cf-connecting-ip'],
@@ -46,3 +63,4 @@ export const auth = betterAuth({
 })
 
 export type Session = typeof auth.$Infer.Session
+export type SessionUser = Session['user']

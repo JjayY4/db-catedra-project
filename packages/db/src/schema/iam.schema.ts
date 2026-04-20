@@ -7,7 +7,6 @@ export const Users = pgTable('Users', {
   email:         varchar('email', { length: 255 }).notNull().unique(),
   emailVerified: boolean('emailVerified').notNull().default(false),
   image:         text('image'),
-  passwordHash:  varchar('passwordHash', { length: 255 }),
   role:          userRoleEnum('role').notNull().default('patient'),
   accountStatus: accountStatusEnum('accountStatus').notNull().default('active'),
   createdAt:     timestamp('createdAt').notNull().defaultNow(),
@@ -15,11 +14,11 @@ export const Users = pgTable('Users', {
 })
 
 export const Sessions = pgTable('Sessions', {
-  id:        text('id').primaryKey(),
+  id:        text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   expiresAt: timestamp('expiresAt').notNull(),
   token:     text('token').notNull().unique(),
-  createdAt: timestamp('createdAt').notNull(),
-  updatedAt: timestamp('updatedAt').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
   ipAddress: text('ipAddress'),
   userAgent: text('userAgent'),
   userId:    uuid('userId').notNull().references(() => Users.id, { onDelete: 'cascade' }),
@@ -28,7 +27,7 @@ export const Sessions = pgTable('Sessions', {
 ])
 
 export const Accounts = pgTable('Accounts', {
-  id:                    text('id').primaryKey(),
+  id:                    text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   accountId:             text('accountId').notNull(),
   providerId:            text('providerId').notNull(),
   userId:                uuid('userId').notNull().references(() => Users.id, { onDelete: 'cascade' }),
@@ -39,14 +38,14 @@ export const Accounts = pgTable('Accounts', {
   refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
   scope:                 text('scope'),
   password:              text('password'),
-  createdAt:             timestamp('createdAt').notNull(),
-  updatedAt:             timestamp('updatedAt').notNull(),
+  createdAt:             timestamp('createdAt').notNull().defaultNow(),
+  updatedAt:             timestamp('updatedAt').notNull().defaultNow(),
 }, (t) => [
   index('accounts_user_id_idx').on(t.userId),
 ])
 
 export const Verifications = pgTable('Verifications', {
-  id:         text('id').primaryKey(),
+  id:         text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   identifier: text('identifier').notNull(),
   value:      text('value').notNull(),
   expiresAt:  timestamp('expiresAt').notNull(),

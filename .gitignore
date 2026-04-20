@@ -11,6 +11,9 @@ out/
 # Turbo
 .turbo/
 
+# Node compile cache
+node-compile-cache/
+
 # Environment
 .env
 .env.local
