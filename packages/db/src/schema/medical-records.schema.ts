@@ -7,7 +7,7 @@ export const MedicalRecords = pgTable('MedicalRecords', {
   id:                uuid('id').primaryKey().defaultRandom(),
   patientDui:        varchar('patientDui', { length: 10 }).notNull().unique()
                        .references(() => Patients.dui),
-  bloodType:         bloodTypeEnum('bloodType').notNull(),
+  bloodType:         bloodTypeEnum('bloodType'),
   knownAllergies:    text('knownAllergies'),
   familyHistory:     text('familyHistory'),
   chronicConditions: text('chronicConditions'),

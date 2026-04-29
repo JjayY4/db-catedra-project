@@ -7,6 +7,8 @@ import { AppError } from './common/errors/app-error'
 import { usersRoutes } from './modules/users/presentation/users.routes'
 import { healthRoutes } from './modules/health/presentation/health.routes'
 import { betterAuthPlugin } from './auth-plugin'
+// <ROUTES_IMPORTS_START>
+// <ROUTES_IMPORTS_END>
 
 export const app = new Elysia({ adapter: BunAdapter })
   .use(cors({
@@ -21,5 +23,7 @@ export const app = new Elysia({ adapter: BunAdapter })
   .use(healthRoutes)
   .use(betterAuthPlugin)
   .use(usersRoutes)
+  // <ROUTES_REGISTRATION_START>
+  // <ROUTES_REGISTRATION_END>
 
 export type App = typeof app

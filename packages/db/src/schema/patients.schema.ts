@@ -4,7 +4,7 @@ import { MedicalInsurances } from './medical-insurances.schema'
 
 export const Patients = pgTable('Patients', {
   dui:           varchar('dui', { length: 10 }).primaryKey(),
-  userId:        uuid('userId').notNull().references(() => Users.id),
+  userId:        uuid('userId').references(() => Users.id),
   firstName:     varchar('firstName', { length: 100 }).notNull(),
   lastName:      varchar('lastName', { length: 100 }).notNull(),
   whatsappPhone: varchar('whatsappPhone', { length: 20 }).notNull(),

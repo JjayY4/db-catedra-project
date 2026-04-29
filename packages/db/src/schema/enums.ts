@@ -25,7 +25,7 @@ export const eventTypeEnum = pgEnum('event_type', [
 ])
 
 export const availabilityStatusEnum = pgEnum('availability_status', [
-  'available', 'busy', 'blocked',
+  'available', 'busy', 'blocked', 'completed', 'cancelled',
 ])
 
 export const syncStatusEnum = pgEnum('sync_status', [
