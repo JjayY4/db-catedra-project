@@ -1,11 +1,12 @@
-import 'reflect-metadata'
-import { ApplicationKernel } from './kernel'
-import { UsersModule } from '~/modules/users/users.module'
-import { HealthModule } from '~/modules/health/health.module'
+import "reflect-metadata";
+import { ApplicationKernel } from "./kernel";
+import { UsersModule } from "~/modules/users/users.module";
+import { HealthModule } from "~/modules/health/health.module";
 // <MODULES_IMPORTS_START>
-import { PatientsModule } from '~/modules/patients/patients.module'
-import { ScheduleEventsModule } from '~/modules/schedule-events/schedule-events.module'
-import { AppointmentsModule } from '~/modules/appointments/appointments.module'
+import { PatientsModule } from "~/modules/patients/patients.module";
+import { AppointmentsModule } from "~/modules/appointments/appointments.module";
+import { AgendaModule } from "~/modules/agenda/agenda.module";
+import { ScheduleEventsModule } from "~/modules/schedule-events/schedule-events.module";
 // <MODULES_IMPORTS_END>
 
 const kernel = ApplicationKernel.getInstance([
@@ -15,7 +16,9 @@ const kernel = ApplicationKernel.getInstance([
   new PatientsModule(),
   new ScheduleEventsModule(),
   new AppointmentsModule(),
+  new AgendaModule(),
+  new ScheduleEventsModule(),
   // <MODULES_REGISTRATION_END>
-])
+]);
 
-export const container = kernel.getContainer()
+export const container = kernel.getContainer();
