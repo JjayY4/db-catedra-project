@@ -37,6 +37,16 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 8,
     autoSignIn: false,
+    requireEmailVerification: false,
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      // No-op stub: real email integration is out of scope for the MVP.
+      // The verification URL is logged so manual flows can pick it up.
+      console.log(`[emailVerification] ${user.email} -> ${url}`)
+    },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7,

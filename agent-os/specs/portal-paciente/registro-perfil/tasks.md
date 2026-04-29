@@ -6,7 +6,7 @@ Spec, shape, tasks, standards y references escritos en `agent-os/specs/portal-pa
 
 ---
 
-## T-01 — Verificar schema de DB
+## T-01 — Verificar schema de DB ✅
 
 **Skill:** `/tech-drizzle`
 
@@ -21,7 +21,7 @@ Spec, shape, tasks, standards y references escritos en `agent-os/specs/portal-pa
 
 ---
 
-## T-02 — Activar plugin emailVerification en Better Auth
+## T-02 — Activar plugin emailVerification en Better Auth ✅
 
 **Skill:** `/better-auth-best-practices`, `/email-and-password-best-practices`
 
@@ -35,7 +35,7 @@ Spec, shape, tasks, standards y references escritos en `agent-os/specs/portal-pa
 
 ---
 
-## T-03 — Entidad `patient` en frontend
+## T-03 — Entidad `patient` en frontend ✅
 
 **Skill:** `/frontend-architecture`, `/tech-drizzle`
 
@@ -61,7 +61,7 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 
 ---
 
-## T-04 — Feature `patient-registration`: formulario CompleteProfileForm
+## T-04 — Feature `patient-registration`: formulario CompleteProfileForm ✅
 
 **Skill:** `/frontend-design`, `/tailwind-css-patterns`, `/better-auth-best-practices`
 
@@ -78,7 +78,7 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 
 ---
 
-## T-05 — View `complete-profile` y thin page
+## T-05 — View `complete-profile` y thin page ✅
 
 **Skill:** `/frontend-architecture`, `/next-best-practices`
 
@@ -98,7 +98,7 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 
 ---
 
-## T-06 — Pantalla de advertencia: correo sin verificar
+## T-06 — Pantalla de advertencia: correo sin verificar ✅
 
 **Skill:** `/frontend-design`, `/better-auth-best-practices`
 
@@ -113,7 +113,7 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 
 ---
 
-## T-07 — Backend: entidad, DTO, repositorio
+## T-07 — Backend: entidad, DTO, repositorio ✅
 
 **Skill:** `/backend-architecture`, `/tech-drizzle`
 
@@ -147,7 +147,7 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 
 ---
 
-## T-08 — Backend: use case `CompleteProfileUseCase`
+## T-08 — Backend: use case `CompleteProfileUseCase` ✅
 
 **Skill:** `/backend-architecture`
 
@@ -163,7 +163,7 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 
 ---
 
-## T-09 — Backend: ruta `patients.routes.ts`
+## T-09 — Backend: ruta `patients.routes.ts` ✅
 
 **Skill:** `/tech-elysia`, `/backend-architecture`
 
@@ -178,7 +178,7 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 
 ---
 
-## T-10 — Backend: módulo y registro IoC
+## T-10 — Backend: módulo y registro IoC ✅
 
 **Skill:** `/backend-architecture`
 
@@ -203,3 +203,5 @@ export type CompleteProfileValues = z.infer<typeof completeProfileSchema>
 - [ ] Mismo endpoint con DUI existente y `userId≠NULL` → 409 con mensaje en español.
 - [ ] Formulario muestra errores inline en español.
 - [ ] Tras guardar perfil, usuario es redirigido a `/dashboard`.
+
+> Implementación completada: 2026-04-28

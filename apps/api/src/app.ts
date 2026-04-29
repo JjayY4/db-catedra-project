@@ -8,6 +8,7 @@ import { usersRoutes } from './modules/users/presentation/users.routes'
 import { healthRoutes } from './modules/health/presentation/health.routes'
 import { betterAuthPlugin } from './auth-plugin'
 // <ROUTES_IMPORTS_START>
+import { patientsRoutes } from './modules/patients/presentation/patients.routes'
 // <ROUTES_IMPORTS_END>
 
 export const app = new Elysia({ adapter: BunAdapter })
@@ -24,6 +25,7 @@ export const app = new Elysia({ adapter: BunAdapter })
   .use(betterAuthPlugin)
   .use(usersRoutes)
   // <ROUTES_REGISTRATION_START>
+  .use(patientsRoutes)
   // <ROUTES_REGISTRATION_END>
 
 export type App = typeof app
