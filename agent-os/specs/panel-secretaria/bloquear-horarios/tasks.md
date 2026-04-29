@@ -7,7 +7,7 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
 
 ---
 
-## Task 2 — Schema Zod en entities (frontend)
+## Task 2 — Schema Zod en entities (frontend) [x]
 
 **Skill:** `/tech-drizzle` (tipos inferidos), `/frontend-architecture` (FSD entities layer)
 
@@ -18,9 +18,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
   - `scheduleEventSchema`: campos base (id, date, startTime, endTime, type, doctorId)
 - Exportar tipos inferidos: `BlockType`, `CreateBlockInput`, `ScheduleEvent`
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 3 — DTO de entrada (backend)
+## Task 3 — DTO de entrada (backend) [x]
 
 **Skill:** `/backend-architecture`
 
@@ -28,9 +30,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
 - Definir `CreateBlockInput` con: `date: string`, `startTime: string`, `endTime: string`, `blockType: 'meeting' | 'vacation' | 'block'`, `doctorId: string`
 - Usar Elysia `t` schema equivalente para validación en ruta
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 4 — Use Case: CreateBlockUseCase
+## Task 4 — Use Case: CreateBlockUseCase [x]
 
 **Skill:** `/backend-architecture`, `/tech-drizzle`
 
@@ -42,9 +46,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
   3. `db.insert(scheduleEvents).values([...])` — uno por slot
   4. Retornar los eventos insertados
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 5 — Use Case: DeleteBlockUseCase
+## Task 5 — Use Case: DeleteBlockUseCase [x]
 
 **Skill:** `/backend-architecture`, `/tech-drizzle`
 
@@ -55,9 +61,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
   2. Verificar que no exista `Appointment` activo en ese slot → si existe: `throw new AppError('Este slot tiene una cita asociada', 409)`
   3. `db.delete(scheduleEvents).where(eq(scheduleEvents.id, id))`
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 6 — Rutas POST + DELETE (backend)
+## Task 6 — Rutas POST + DELETE (backend) [x]
 
 **Skill:** `/tech-elysia`, `/backend-architecture`
 
@@ -67,9 +75,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
   - `DELETE /schedule-events/:id` — llama `DeleteBlockUseCase`, requiere auth + rol secretaria/admin
 - Usar `betterAuthPlugin` + macro de auth como en `users.routes.ts`
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 7 — Binding en módulo IoC
+## Task 7 — Binding en módulo IoC [x]
 
 **Skill:** `/backend-architecture`
 
@@ -77,9 +87,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
 - Registrar `CreateBlockUseCase` y `DeleteBlockUseCase` en el contenedor Inversify
 - Seguir el patrón de binding existente del módulo
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 8 — Componente BloquearHorariosForm (frontend)
+## Task 8 — Componente BloquearHorariosForm (frontend) [x]
 
 **Skill:** `/frontend-design`, `/frontend-architecture`, `/tech-elysia` (Eden Treaty client)
 
@@ -94,9 +106,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
 - Éxito: `onSuccess()` callback para refrescar agenda-diaria
 - Todos los componentes de `@/components/ui/` (shadcn)
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 9 — Public API del feature (frontend)
+## Task 9 — Public API del feature (frontend) [x]
 
 **Skill:** `/frontend-architecture`
 
@@ -104,9 +118,11 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
 - Exportar `BloquearHorariosForm`
 - Exportar tipos necesarios (reexport desde entities si aplica)
 
+> Implementación completada: 2026-04-28
+
 ---
 
-## Task 10 — Integrar en agenda-diaria
+## Task 10 — Integrar en agenda-diaria [x]
 
 **Skill:** `/frontend-architecture`
 
@@ -114,3 +130,5 @@ Actualizar `_index.md` con la nueva fila. Ya completado por el agente de specs.
   - Botón "Bloquear franja" que abre `BloquearHorariosForm` (Dialog/Sheet de shadcn)
   - En slots bloqueados mostrados: botón "Desbloquear" que llama `clientApi.scheduleEvents[id].delete()`
 - Refrescar la lista de slots tras cada operación exitosa
+
+> Implementación completada: 2026-04-28

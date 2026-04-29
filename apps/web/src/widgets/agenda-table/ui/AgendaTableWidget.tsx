@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { UnblockSlotButton } from '@/features/block-schedule'
 
 export interface AgendaItem {
   slotId:             string
@@ -88,7 +89,11 @@ export function AgendaTableWidget({ items }: AgendaTableWidgetProps) {
                 <TableCell>{item.patientName ?? '—'}</TableCell>
                 <TableCell className="max-w-xs truncate">{item.bookingReason ?? '—'}</TableCell>
                 <TableCell>{item.whatsappPhone ?? '—'}</TableCell>
-                <TableCell className="text-right text-xs text-muted-foreground">—</TableCell>
+                <TableCell className="text-right">
+                  {status === 'blocked'
+                    ? <UnblockSlotButton slotId={item.slotId} />
+                    : <span className="text-xs text-muted-foreground">—</span>}
+                </TableCell>
               </TableRow>
             )
           })}
