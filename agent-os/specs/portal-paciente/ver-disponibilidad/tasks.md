@@ -6,7 +6,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 2 — Entidad y tipos frontend
+## Task 2 — Entidad y tipos frontend ✅
 
 **Skill:** `/tech-drizzle`
 
@@ -15,7 +15,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 3 — Backend: entidad de dominio
+## Task 3 — Backend: entidad de dominio ✅
 
 **Skill:** `/backend-architecture`
 
@@ -24,7 +24,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 4 — Backend: interfaz de repositorio
+## Task 4 — Backend: interfaz de repositorio ✅
 
 **Skill:** `/backend-architecture`
 
@@ -34,7 +34,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 5 — Backend: output DTO
+## Task 5 — Backend: output DTO ✅
 
 **Skill:** `/backend-architecture`
 
@@ -43,7 +43,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 6 — Backend: use case
+## Task 6 — Backend: use case ✅
 
 **Skill:** `/backend-architecture`
 
@@ -53,7 +53,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 7 — Backend: repositorio Drizzle
+## Task 7 — Backend: repositorio Drizzle ✅
 
 **Skill:** `/tech-drizzle`
 
@@ -64,7 +64,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 8 — Backend: rutas Elysia
+## Task 8 — Backend: rutas Elysia ✅
 
 **Skill:** `/tech-elysia`
 
@@ -75,7 +75,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 9 — Backend: módulo e inyección
+## Task 9 — Backend: módulo e inyección ✅
 
 **Skill:** `/backend-architecture`
 
@@ -86,7 +86,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 10 — Widget: CalendarioDisponibilidadWidget
+## Task 10 — Widget: CalendarioDisponibilidadWidget ✅
 
 **Skills:** `/frontend-design`, `/tailwind-css-patterns`, `/next-best-practices`
 
@@ -101,7 +101,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 11 — View: DisponibilidadPage (RSC)
+## Task 11 — View: DisponibilidadPage (RSC) ✅
 
 **Skills:** `/next-best-practices`, `/frontend-design`
 
@@ -116,7 +116,7 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 
 ---
 
-## Task 12 — Thin page route
+## Task 12 — Thin page route ✅
 
 **Skill:** `/next-best-practices`
 
@@ -134,3 +134,5 @@ Archivar este spec en `agent-os/specs/portal-paciente/ver-disponibilidad/`. Arch
 - Navegación semanal cambia URL y re-ejecuta fetch RSC.
 - Click en slot sin sesión muestra Dialog con "Inicia sesión para reservar".
 - Click en slot con sesión redirige a `/reservar-cita?slotId=<id>`.
+
+> Implementación completada: 2026-04-28
