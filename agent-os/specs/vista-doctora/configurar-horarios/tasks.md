@@ -13,7 +13,9 @@ Crear los archivos de especificación en `agent-os/specs/vista-doctora/configura
 
 ---
 
-## Task 2 — Entidad frontend: ScheduleEvent schemas
+## Task 2 — Entidad frontend: ScheduleEvent schemas ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/tech-drizzle` (para inferir tipos desde el schema Drizzle existente)
 
@@ -29,7 +31,9 @@ Pasos:
 
 ---
 
-## Task 3 — DTOs y Use Case en API
+## Task 3 — DTOs y Use Case en API ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/backend-architecture`
 
@@ -50,7 +54,9 @@ Pasos:
 
 ---
 
-## Task 4 — Endpoint API
+## Task 4 — Endpoint API ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/tech-elysia`
 
@@ -64,7 +70,9 @@ Pasos:
 
 ---
 
-## Task 5 — Feature frontend: ConfigurarHorariosForm
+## Task 5 — Feature frontend: ConfigurarHorariosForm ✅
+
+> Implementación completada: 2026-04-28
 
 **Skills:** `/frontend-design`, `/frontend-architecture`, `/tech-elysia` (Eden Treaty client)
 
@@ -83,7 +91,9 @@ Pasos:
 
 ---
 
-## Task 6 — View y Page
+## Task 6 — View y Page ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/frontend-architecture`
 

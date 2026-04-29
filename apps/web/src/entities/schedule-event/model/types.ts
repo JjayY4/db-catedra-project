@@ -1,6 +1,11 @@
-import type { ScheduleEvent } from '@project/db/src/schema'
-
-export type { ScheduleEvent }
+export interface ScheduleEvent {
+  id: string
+  eventDate: string
+  startTime: string
+  endTime: string
+  eventType: 'appointment' | 'block' | 'vacation' | 'meeting'
+  availabilityStatus: 'available' | 'busy' | 'blocked' | 'completed' | 'cancelled'
+}
 
 export interface AvailableSlot {
   id: string

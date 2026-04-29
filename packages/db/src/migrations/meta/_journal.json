@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1776641726031,
-      "tag": "0000_sticky_gladiator",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1777434530208,
-      "tag": "0001_sharp_captain_america",
+      "when": 1777441228226,
+      "tag": "0000_empty_lake",
       "breakpoints": true
     }
   ]

@@ -7,7 +7,11 @@ interface AgendaSecretariaPageProps {
 }
 
 export async function AgendaSecretariaPage({ fecha }: AgendaSecretariaPageProps) {
-  const { data, error } = await api.agenda.get({ query: { fecha } })
+  const nextDay = new Date(`${fecha}T00:00:00Z`)
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1)
+  const date_to = nextDay.toISOString().slice(0, 10)
+
+  const { data, error } = await api.agenda.get({ query: { fecha, date_from: fecha, date_to } })
 
   if (error) {
     return (

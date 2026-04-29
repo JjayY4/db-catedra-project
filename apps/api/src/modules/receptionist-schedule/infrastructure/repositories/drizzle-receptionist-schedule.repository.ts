@@ -8,7 +8,7 @@ import {
   IScheduleEventsRepository,
   type NewBlockSlot,
   type SlotInput,
-} from "../../domain/interfaces/schedule-events.repository";
+} from "../../domain/interfaces/receptionist-schedule.repository";
 import type {
   ConflictingAppointment,
   IScheduleEvent,

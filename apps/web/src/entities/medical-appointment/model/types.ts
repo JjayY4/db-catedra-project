@@ -1,6 +1,10 @@
-import type { MedicalAppointment } from '@project/db/src/schema'
-
-export type { MedicalAppointment }
+export interface MedicalAppointment {
+  id: string
+  eventId: string
+  patientDui: string
+  bookingReason: string
+  bookedAt: string
+}
 
 export interface AppointmentSummary {
   id: string

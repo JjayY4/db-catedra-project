@@ -2,7 +2,7 @@ import { injectable } from 'inversify'
 import { asc, eq } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { DailyScheduleView } from '@project/db/src/schema/views'
-import { IAgendaRepository } from '../../domain/interfaces/agenda.repository'
+import { IAgendaRepository } from '../../domain/interfaces/receptionist-agenda.repository'
 import type { IAgendaSlot } from '../../domain/entities/agenda-slot.entity'
 
 type DailyScheduleRow = typeof DailyScheduleView.$inferSelect

@@ -5,8 +5,10 @@ import { HealthModule } from "~/modules/health/health.module";
 // <MODULES_IMPORTS_START>
 import { PatientsModule } from "~/modules/patients/patients.module";
 import { AppointmentsModule } from "~/modules/appointments/appointments.module";
-import { AgendaModule } from "~/modules/agenda/agenda.module";
-import { ScheduleEventsModule } from "~/modules/schedule-events/schedule-events.module";
+import { AgendaModule } from "~/modules/receptionist-agenda/receptionist-agenda.module";
+import { ScheduleEventsModule } from "~/modules/receptionist-schedule/receptionist-schedule.module";
+import { DoctorScheduleModule } from '~/modules/doctor-schedule/doctor-schedule.module'
+import { DoctorAgendaModule } from '~/modules/doctor-agenda/doctor-agenda.module'
 // <MODULES_IMPORTS_END>
 
 const kernel = ApplicationKernel.getInstance([
@@ -17,7 +19,8 @@ const kernel = ApplicationKernel.getInstance([
   new ScheduleEventsModule(),
   new AppointmentsModule(),
   new AgendaModule(),
-  new ScheduleEventsModule(),
+  new DoctorScheduleModule(),
+  new DoctorAgendaModule(),
   // <MODULES_REGISTRATION_END>
 ]);
 

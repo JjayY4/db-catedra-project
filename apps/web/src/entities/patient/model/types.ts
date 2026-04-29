@@ -1,6 +1,12 @@
-import type { Patient } from '@project/db/src/schema'
-
-export type { Patient }
+export interface Patient {
+  dui: string
+  userId: string | null
+  firstName: string
+  lastName: string
+  whatsappPhone: string
+  birthDate: string
+  insuranceId: string | null
+}
 
 export interface PatientProfile {
   dui: string

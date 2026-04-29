@@ -2,7 +2,7 @@ import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
-import { IScheduleEventsRepository } from '../../domain/interfaces/schedule-events.repository'
+import { IScheduleEventsRepository } from '../../domain/interfaces/receptionist-schedule.repository'
 import type { ScheduleEventType, IScheduleEvent } from '../../domain/entities/schedule-event.entity'
 import type { CreateBlockInput } from '../dtos/inputs/create-block.input'
 

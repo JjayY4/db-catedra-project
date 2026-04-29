@@ -1,7 +1,7 @@
 import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
-import { IAgendaRepository } from '../../domain/interfaces/agenda.repository'
+import { IAgendaRepository } from '../../domain/interfaces/receptionist-agenda.repository'
 import type { ReceptionistAgendaItemOutput } from '../dtos/outputs/receptionist-agenda-item.output'
 
 interface Input {

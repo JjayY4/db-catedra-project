@@ -10,8 +10,8 @@
 
 - [x] Generar la migración: `pnpm --filter @project/db db:generate` y revisar el SQL generado en `packages/db/src/migrations/` antes de continuar, especialmente la migración del enum (debe usar `CREATE TYPE` con los cinco valores) → `/tech-drizzle`
 
-- [ ] Aplicar la migración: `pnpm --filter @project/db db:migrate` y verificar que los tres `ALTER` se ejecutan sin error → `/tech-drizzle`
+- [x] Aplicar la migración: `pnpm --filter @project/db db:migrate` y verificar que los tres `ALTER` se ejecutan sin error → `/tech-drizzle`
 
-- [ ] Verificar en base de datos que `Patients.userId` admite NULL, `MedicalRecords.bloodType` admite NULL, y el enum `availability_status` incluye los cinco valores → `/tech-drizzle`
+- [x] Verificar en base de datos que `Patients.userId` admite NULL, `MedicalRecords.bloodType` admite NULL, y el enum `availability_status` incluye los cinco valores → `/tech-drizzle`
 
 > Implementación completada: 2026-04-28

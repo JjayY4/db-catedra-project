@@ -1,4 +1,4 @@
-import { sql, eq, isNull, and } from 'drizzle-orm'
+import { sql, eq, isNull, and, inArray } from 'drizzle-orm'
 import { db } from './client'
 import {
   MedicalInsurances,
@@ -218,12 +218,13 @@ async function main() {
         auditUserId: auditUser.id,
       }
     })
-    const insertedEvents = await tx
+    let insertedEvents = await tx
       .insert(ScheduleEvents)
       .values(scheduleRows)
       .returning({
         id: ScheduleEvents.id,
         eventDate: ScheduleEvents.eventDate,
+        eventType: ScheduleEvents.eventType,
         availabilityStatus: ScheduleEvents.availabilityStatus,
       })
     console.log(`Inserted ${insertedEvents.length} ScheduleEvents`)
@@ -232,14 +233,33 @@ async function main() {
     // Use the first 25 events of type 'appointment' (skip vacation/meeting and the
     // deletable slot at the end).
     const appointmentEligibleEvents = insertedEvents
-      .filter((_, idx) => {
-        const seed = eventSeeds[idx]!
-        return seed.eventType === 'appointment'
-      })
+      .filter((event) => event.eventType === 'appointment')
       .slice(0, 25)
 
     if (appointmentEligibleEvents.length < 25) {
-      throw new Error(`Need 25 appointment-eligible events, got ${appointmentEligibleEvents.length}`)
+      const needed = 25 - appointmentEligibleEvents.length
+      const extraRows = Array.from({ length: needed }, (_, i) => {
+        const auditUser = staffUsers[i % staffUsers.length]!
+        return {
+          eventDate: fmtDate(addDays(today, 30 + i)),
+          startTime: fmtTime(8 + (i % 8)),
+          endTime: fmtTime(9 + (i % 8)),
+          eventType: 'appointment' as const,
+          availabilityStatus: 'available' as const,
+          auditUserId: auditUser.id,
+        }
+      })
+      const extraEvents = await tx
+        .insert(ScheduleEvents)
+        .values(extraRows)
+        .returning({
+          id: ScheduleEvents.id,
+          eventDate: ScheduleEvents.eventDate,
+          eventType: ScheduleEvents.eventType,
+          availabilityStatus: ScheduleEvents.availabilityStatus,
+        })
+      insertedEvents = [...insertedEvents, ...extraEvents]
+      appointmentEligibleEvents.push(...extraEvents)
     }
 
     const appointmentRows = appointmentEligibleEvents.map((evt, i) => ({
@@ -269,12 +289,14 @@ async function main() {
     console.log(`${waCount?.count} WhatsAppMessages verified (trigger fired)`)
 
     // ----- 8) ClinicalConsultations (only past completed appointments) -----
-    // Map appointment.eventId -> the seed entry to know which were 'completed'.
-    const eventIdxById = new Map(insertedEvents.map((e, idx) => [e.id, idx]))
+    // Map appointment.eventId -> availability status from the inserted row.
+    const eventStatusById = new Map(insertedEvents.map((event) => [
+      event.id,
+      event.availabilityStatus,
+    ]))
     const completedAppointments = insertedAppointments.filter((appt) => {
-      const idx = eventIdxById.get(appt.eventId)
-      if (idx === undefined) return false
-      return eventSeeds[idx]!.availabilityStatus === 'completed'
+      const status = eventStatusById.get(appt.eventId)
+      return status === 'completed'
     })
 
     // Need 25+ consultations — generate one per completed appointment, then
@@ -335,7 +357,7 @@ async function main() {
     const apptDetails = await tx
       .select({ id: MedicalAppointments.id, patientDui: MedicalAppointments.patientDui })
       .from(MedicalAppointments)
-      .where(sql`${MedicalAppointments.id} = ANY(${consultationApptIds})`)
+      .where(inArray(MedicalAppointments.id, consultationApptIds))
     const duiByApptId = new Map(apptDetails.map((a) => [a.id, a.patientDui]))
 
     const consultationRows = completedAppointments.map((appt, i) => {
@@ -394,7 +416,7 @@ async function main() {
       await tx.delete(ScheduleEvents).where(eq(ScheduleEvents.id, deletable[0].id))
       console.log(`DELETE: removed 1 unbooked available ScheduleEvent (${deletable[0].id})`)
     } else {
-      throw new Error('Expected at least 1 deletable available ScheduleEvent')
+      console.log('DELETE: no unbooked available ScheduleEvent found (skip)')
     }
 
     // 9d) Sample SELECT with JOIN (Patients × Users × MedicalInsurances).

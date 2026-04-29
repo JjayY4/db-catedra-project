@@ -1,7 +1,7 @@
 import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
-import { IScheduleEventsRepository } from '../../domain/interfaces/schedule-events.repository'
+import { IScheduleEventsRepository } from '../../domain/interfaces/receptionist-schedule.repository'
 import type { AvailableSlotOutput } from '../dtos/outputs/available-slot.output'
 
 interface Input {
