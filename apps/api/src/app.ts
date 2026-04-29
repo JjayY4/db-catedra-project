@@ -9,6 +9,7 @@ import { healthRoutes } from './modules/health/presentation/health.routes'
 import { betterAuthPlugin } from './auth-plugin'
 // <ROUTES_IMPORTS_START>
 import { scheduleEventsRoutes } from './modules/schedule-events/presentation/schedule-events.routes'
+import { agendaRoutes } from './modules/agenda/presentation/agenda.routes'
 // <ROUTES_IMPORTS_END>
 
 export const app = new Elysia({ adapter: BunAdapter })
@@ -26,6 +27,7 @@ export const app = new Elysia({ adapter: BunAdapter })
   .use(usersRoutes)
   // <ROUTES_REGISTRATION_START>
   .use(scheduleEventsRoutes)
+  .use(agendaRoutes)
   // <ROUTES_REGISTRATION_END>
 
 export type App = typeof app

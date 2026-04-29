@@ -6,7 +6,9 @@ Archivos de spec creados en `agent-os/specs/vista-doctora/agenda-hoy/`.
 
 ---
 
-## Task 2 — Definir entidad y DTO de salida
+## Task 2 — Definir entidad y DTO de salida ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/backend-architecture`
 
@@ -19,7 +21,9 @@ Pasos:
 
 ---
 
-## Task 3 — Interfaz de repositorio
+## Task 3 — Interfaz de repositorio ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/backend-architecture`
 
@@ -30,7 +34,9 @@ Pasos:
 
 ---
 
-## Task 4 — Implementación Drizzle del repositorio
+## Task 4 — Implementación Drizzle del repositorio ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/tech-drizzle`
 
@@ -44,7 +50,9 @@ Pasos:
 
 ---
 
-## Task 5 — Caso de uso
+## Task 5 — Caso de uso ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/backend-architecture`
 
@@ -57,7 +65,9 @@ Pasos:
 
 ---
 
-## Task 6 — Ruta Elysia
+## Task 6 — Ruta Elysia ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/tech-elysia`
 
@@ -70,7 +80,9 @@ Pasos:
 
 ---
 
-## Task 7 — Thin page Next.js
+## Task 7 — Thin page Next.js ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/next-best-practices`, `/frontend-architecture`
 
@@ -83,7 +95,9 @@ Pasos:
 
 ---
 
-## Task 8 — View component AgendaDoctorPage
+## Task 8 — View component AgendaDoctorPage ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/frontend-architecture`, `/next-best-practices`
 
@@ -96,7 +110,9 @@ Pasos:
 
 ---
 
-## Task 9 — Widget AgendaTimelineWidget
+## Task 9 — Widget AgendaTimelineWidget ✅
+
+> Implementación completada: 2026-04-28
 
 **Skill:** `/frontend-design`, `/tailwind-css-patterns`
 
