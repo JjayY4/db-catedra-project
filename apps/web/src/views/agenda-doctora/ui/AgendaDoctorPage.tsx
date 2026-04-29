@@ -13,7 +13,7 @@ export async function AgendaDoctorPage({ fecha }: AgendaDoctorPageProps) {
   await requireRole([UserRole.Doctor])
 
   const cookie = (await headers()).get('cookie') ?? ''
-  const { data, error } = await api.agenda.get({
+  const { data, error } = await api.doctor.agenda.get({
     query: { fecha },
     fetch: { headers: { cookie } },
   })

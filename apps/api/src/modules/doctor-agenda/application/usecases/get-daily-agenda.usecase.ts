@@ -2,14 +2,14 @@ import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
-import { IAgendaRepository } from '../../domain/interfaces/agenda.repository'
+import { IDoctorAgendaRepository } from '../../domain/interfaces/doctor-agenda.repository'
 import type { AgendaItemOutput } from '../dtos/outputs/agenda-item.output'
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 @injectable()
 export class GetDailyAgendaUseCase extends BaseUseCase<{ fecha: string }, AgendaItemOutput[]> {
-  constructor(private readonly repo: IAgendaRepository) { super() }
+  constructor(private readonly repo: IDoctorAgendaRepository) { super() }
 
   protected async handle({ fecha }: { fecha: string }, tx: TxClient): Promise<AgendaItemOutput[]> {
     if (!DATE_PATTERN.test(fecha)) {

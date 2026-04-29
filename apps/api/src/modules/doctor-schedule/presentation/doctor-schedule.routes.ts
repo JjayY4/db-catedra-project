@@ -11,10 +11,10 @@ function assertDoctor(role: unknown): asserts role is 'doctor' {
   if (role !== 'doctor') throw new AppError('Acceso restringido a personal médico', 403)
 }
 
-export const scheduleEventsRoutes = createRouter({ prefix: '/schedule-events' })
+export const doctorScheduleRoutes = createRouter({ prefix: '/doctor' })
   .use(betterAuthPlugin)
   .post(
-    '/preview',
+    '/schedule/preview',
     ({ container, body, user }) => {
       assertDoctor(user.role)
       return container.get(PreviewWeeklyScheduleUseCase).execute(body)
@@ -26,7 +26,7 @@ export const scheduleEventsRoutes = createRouter({ prefix: '/schedule-events' })
     },
   )
   .post(
-    '/generate',
+    '/schedule/generate',
     ({ container, body, user }) => {
       assertDoctor(user.role)
       return container.get(GenerateWeeklyScheduleUseCase).execute({ ...body, auditUserId: user.id })

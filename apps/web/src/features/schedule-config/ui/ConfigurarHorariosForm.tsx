@@ -78,7 +78,7 @@ export function ConfigurarHorariosForm() {
   function onPreviewSubmit(values: GenerateScheduleInput) {
     setFeedback(null)
     startPreview(async () => {
-      const { data, error } = await clientApi['schedule-events'].preview.post(values)
+      const { data, error } = await clientApi.doctor.schedule.preview.post(values)
       if (error) {
         const message = typeof error.value === 'object' && error.value && 'message' in error.value
           ? String((error.value as { message: unknown }).message)
@@ -95,7 +95,7 @@ export function ConfigurarHorariosForm() {
     const values = getValues()
     setFeedback(null)
     startConfirm(async () => {
-      const { data, error } = await clientApi['schedule-events'].generate.post(values)
+      const { data, error } = await clientApi.doctor.schedule.generate.post(values)
       if (error) {
         const message = typeof error.value === 'object' && error.value && 'message' in error.value
           ? String((error.value as { message: unknown }).message)

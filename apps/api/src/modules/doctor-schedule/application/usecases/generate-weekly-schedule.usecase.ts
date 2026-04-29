@@ -2,7 +2,7 @@ import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
-import { IScheduleEventsRepository } from '../../domain/interfaces/schedule-events.repository'
+import { IDoctorScheduleRepository } from '../../domain/interfaces/doctor-schedule.repository'
 import { calculateSlots, slotKey } from '../services/calculate-slots'
 import type { GenerateScheduleInput } from '../dtos/inputs/generate-schedule.input'
 import type { GenerateScheduleOutput } from '../dtos/outputs/generate-schedule.output'
@@ -16,7 +16,7 @@ export class GenerateWeeklyScheduleUseCase extends BaseUseCase<
   GenerateWeeklyScheduleCommand,
   GenerateScheduleOutput
 > {
-  constructor(private readonly repo: IScheduleEventsRepository) { super() }
+  constructor(private readonly repo: IDoctorScheduleRepository) { super() }
 
   protected async handle(input: GenerateWeeklyScheduleCommand, tx: TxClient): Promise<GenerateScheduleOutput> {
     if (input.endTime <= input.startTime) {

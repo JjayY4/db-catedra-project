@@ -2,12 +2,12 @@ import { injectable } from 'inversify'
 import { sql } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { ScheduleEvents } from '@project/db/src/schema/schedule-events.schema'
-import { IScheduleEventsRepository } from '../../domain/interfaces/schedule-events.repository'
+import { IDoctorScheduleRepository } from '../../domain/interfaces/doctor-schedule.repository'
 import type { ISlotCandidate } from '../../domain/entities/slot-candidate.entity'
 import { slotKey } from '../../application/services/calculate-slots'
 
 @injectable()
-export class DrizzleScheduleEventsRepository extends IScheduleEventsRepository {
+export class DrizzleDoctorScheduleRepository extends IDoctorScheduleRepository {
   findOverlappingKeys = async (
     candidates: ISlotCandidate[],
     tx: TxClient,

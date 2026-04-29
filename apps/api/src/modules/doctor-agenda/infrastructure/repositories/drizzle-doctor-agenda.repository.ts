@@ -3,7 +3,7 @@ import { asc, eq, inArray } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { DailyScheduleView } from '@project/db/src/schema/views'
 import { ClinicalConsultations } from '@project/db/src/schema/clinical-consultations.schema'
-import { IAgendaRepository } from '../../domain/interfaces/agenda.repository'
+import { IDoctorAgendaRepository } from '../../domain/interfaces/doctor-agenda.repository'
 import type { AgendaStatus, IAgendaItem } from '../../domain/entities/agenda-item.entity'
 
 type ViewRow = {
@@ -48,7 +48,7 @@ function toEntity(row: ViewRow, diagnoses: Map<string, string>): IAgendaItem {
 }
 
 @injectable()
-export class DrizzleAgendaRepository extends IAgendaRepository {
+export class DrizzleDoctorAgendaRepository extends IDoctorAgendaRepository {
   getDailyAgenda = async (fecha: string, tx: TxClient): Promise<IAgendaItem[]> => {
     const rows = await tx
       .select({
