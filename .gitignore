@@ -46,3 +46,6 @@ builds/
 dist/
 
 .next/
+
+
+./worktrees/
