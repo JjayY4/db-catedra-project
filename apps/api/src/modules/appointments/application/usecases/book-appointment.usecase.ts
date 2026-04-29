@@ -3,7 +3,7 @@ import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
 import { IAppointmentsRepository } from '../../domain/interfaces/appointments.repository'
-import { IScheduleEventsRepository } from '~/modules/receptionist-schedule/domain/interfaces/receptionist-schedule.repository'
+import { IReceptionistScheduleRepository } from '~/modules/receptionist-schedule/domain/interfaces/receptionist-schedule.repository'
 import { IPatientsRepository } from '~/modules/patients/domain/interfaces/patients.repository'
 import type { BookAppointmentInput } from '../dtos/inputs/book-appointment.input'
 import type { AppointmentOutput } from '../dtos/outputs/appointment.output'
@@ -16,7 +16,7 @@ interface Input extends BookAppointmentInput {
 export class BookAppointmentUseCase extends BaseUseCase<Input, AppointmentOutput> {
   constructor(
     private readonly appointments: IAppointmentsRepository,
-    private readonly events:       IScheduleEventsRepository,
+    private readonly events:       IReceptionistScheduleRepository,
     private readonly patients:     IPatientsRepository,
   ) { super() }
 

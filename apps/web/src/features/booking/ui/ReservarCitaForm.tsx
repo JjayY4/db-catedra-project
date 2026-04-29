@@ -10,21 +10,15 @@ import {
   bookAppointmentSchema,
   type BookAppointmentValues,
 } from '@/entities/medical-appointment'
+import type { AvailableSlotOutput } from '@project/api/src/modules/receptionist-schedule/application/dtos/outputs/available-slot.output'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Alert } from '@/components/ui/alert'
 
-interface SlotSummary {
-  id:        string
-  eventDate: string
-  startTime: string
-  endTime:   string
-}
-
 interface ReservarCitaFormProps {
-  slot: SlotSummary
+  slot: AvailableSlotOutput
 }
 
 interface ConfirmedAppointment {
@@ -64,12 +58,7 @@ export function ReservarCitaForm({ slot }: ReservarCitaFormProps) {
         bookingReason: values.bookingReason,
       })
       if (error) {
-        const status = (error as { status?: number }).status ?? 0
-        const message =
-          typeof error.value === 'object' && error.value && 'message' in error.value
-            ? String((error.value as { message: string }).message)
-            : null
-
+        const status: number = error.status
         if (status === 422) {
           router.push('/complete-profile')
           return
@@ -78,7 +67,12 @@ export function ReservarCitaForm({ slot }: ReservarCitaFormProps) {
           setSlotTaken(true)
           return
         }
-        setServerError(message ?? 'No se pudo confirmar tu cita. Intenta de nuevo.')
+        const value = error.value
+        const message =
+          value && typeof value === 'object' && 'message' in value && typeof value.message === 'string'
+            ? value.message
+            : 'No se pudo confirmar tu cita. Intenta de nuevo.'
+        setServerError(message)
         return
       }
       if (data) {
@@ -94,12 +88,12 @@ export function ReservarCitaForm({ slot }: ReservarCitaFormProps) {
           <CardTitle className="text-xl">Cita confirmada</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 px-0">
-          <p className="text-sm text-slate-700">
+          <p className="text-sm text-foreground">
             Tu cita ha sido reservada para el <strong>{slot.eventDate}</strong> de{' '}
             <strong>{formatTime(slot.startTime)}</strong> a{' '}
             <strong>{formatTime(slot.endTime)}</strong>.
           </p>
-          <p className="text-sm text-slate-600">Motivo: {confirmed.bookingReason}</p>
+          <p className="text-sm text-muted-foreground">Motivo: {confirmed.bookingReason}</p>
           <div className="flex gap-2">
             <Link href="/dashboard/patient" className={buttonVariants({ variant: 'outline' })}>
               Volver al inicio
@@ -133,10 +127,10 @@ export function ReservarCitaForm({ slot }: ReservarCitaFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <Card className="p-4">
-        <p className="text-xs text-slate-500 uppercase tracking-wide">Horario seleccionado</p>
-        <p className="text-base font-semibold text-slate-900 mt-1">{slot.eventDate}</p>
-        <p className="text-sm text-slate-600">
+      <Card className="p-4 border-primary/30 bg-primary/5">
+        <p className="text-xs uppercase tracking-wide text-primary font-semibold">Horario seleccionado</p>
+        <p className="text-base font-semibold text-foreground mt-1">{slot.eventDate}</p>
+        <p className="text-sm text-muted-foreground">
           {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
         </p>
       </Card>
@@ -155,7 +149,7 @@ export function ReservarCitaForm({ slot }: ReservarCitaFormProps) {
           placeholder="Describe brevemente el motivo de tu consulta"
           {...register('bookingReason')}
         />
-        <div className="flex justify-between text-xs text-slate-500">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>{errors.bookingReason?.message ?? ' '}</span>
           <span>{reasonValue.length}/500</span>
         </div>

@@ -12,6 +12,7 @@ export type AvailabilityStatus =
 
 export interface IScheduleEvent {
   id: string;
+  doctorId: string;
   eventDate: string;
   startTime: string;
   endTime: string;

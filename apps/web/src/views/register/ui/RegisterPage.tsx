@@ -13,9 +13,9 @@ export function RegisterPage() {
         <RegisterForm />
       </CardContent>
       <CardFooter className="flex justify-center">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-slate-900 underline underline-offset-4">
+          <Link href="/login" className="font-medium text-primary underline underline-offset-4">
             Sign in
           </Link>
         </p>

@@ -3,19 +3,17 @@
 -- ============================================================
 
 -- Create roles
-CREATE ROLE role_admin       LOGIN PASSWORD 'Admin@2026!';
 CREATE ROLE role_doctor      LOGIN PASSWORD 'Doctor@2026!';
 CREATE ROLE role_receptionist LOGIN PASSWORD 'Recept@2026!';
 CREATE ROLE role_patient     LOGIN PASSWORD 'Patient@2026!';
 
--- ---- ADMIN: full access ----
-GRANT ALL PRIVILEGES ON ALL TABLES    IN SCHEMA public TO role_admin;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO role_admin;
-GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO role_admin;
+-- ---- DOCTOR: full clinical access + user management (replaces admin) ----
+GRANT SELECT, INSERT, UPDATE ON
+  "Users"
+TO role_doctor;
 
--- ---- DOCTOR: read all clinical data, write consultations ----
 GRANT SELECT ON
-  "Users", "Patients", "MedicalInsurances",
+  "Patients", "MedicalInsurances",
   "MedicalRecords", "ScheduleEvents", "MedicalAppointments",
   "WhatsAppMessages"
 TO role_doctor;

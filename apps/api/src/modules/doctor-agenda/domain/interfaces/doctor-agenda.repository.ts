@@ -1,6 +1,6 @@
-import type { RepositoryMethod } from '~/common/base/repository-method.type'
+import type { TxClient } from '@project/db/src/client'
 import type { IAgendaItem } from '../entities/agenda-item.entity'
 
 export abstract class IDoctorAgendaRepository {
-  abstract getDailyAgenda: RepositoryMethod<[fecha: string], IAgendaItem[]>
+  abstract getDailyAgenda(doctorId: string, fecha: string, tx: TxClient): Promise<IAgendaItem[]>
 }

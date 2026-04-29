@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useEffect, useMemo, useState, useTransition } from 'react'
+import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { clientApi } from '@/shared/api/client'
 import {
@@ -15,7 +15,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -23,6 +22,8 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
+import { TimePicker } from '@/components/ui/time-picker'
+import { cn } from '@/lib/utils'
 
 const DAYS = [
   { value: 1, label: 'Lunes' },
@@ -41,21 +42,67 @@ const DURATIONS: Array<{ value: 15 | 30 | 45 | 60; label: string }> = [
   { value: 60, label: '60 minutos' },
 ]
 
-function nextWeekStart(): string {
+function startOfTodayUtc(): Date {
   const today = new Date()
   today.setUTCHours(0, 0, 0, 0)
-  today.setUTCDate(today.getUTCDate() + 1)
-  return today.toISOString().slice(0, 10)
+  return today
+}
+
+function mondayOfCurrentWeek(): Date {
+  const today = startOfTodayUtc()
+  const day = today.getUTCDay() // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const diff = day === 0 ? -6 : 1 - day
+  today.setUTCDate(today.getUTCDate() + diff)
+  return today
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date)
+  next.setUTCDate(next.getUTCDate() + days)
+  return next
+}
+
+function isoDate(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+function offsetForDay(dayValue: number): number {
+  return dayValue === 0 ? 6 : dayValue - 1
+}
+
+function formatLong(date: Date): string {
+  return date.toLocaleDateString('es-ES', {
+    day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC',
+  })
+}
+
+function formatPreviewDate(d: string | Date): string {
+  const date = d instanceof Date
+    ? d
+    : new Date(`${String(d).slice(0, 10)}T00:00:00.000Z`)
+  if (Number.isNaN(date.getTime())) return String(d)
+  const weekday = date.toLocaleDateString('es-ES', { weekday: 'long', timeZone: 'UTC' })
+  const day     = date.toLocaleDateString('es-ES', { day: 'numeric', timeZone: 'UTC' })
+  const month   = date.toLocaleDateString('es-ES', { month: 'long', timeZone: 'UTC' })
+  return `${weekday} ${day} de ${month}`
 }
 
 function formatTime(t: string): string {
   return t.slice(0, 5)
 }
 
-function formatDate(d: string): string {
-  return new Date(`${d}T00:00:00.000Z`).toLocaleDateString('es-ES', {
-    weekday: 'long', day: '2-digit', month: '2-digit', timeZone: 'UTC',
-  })
+function pad(n: number): string {
+  return n.toString().padStart(2, '0')
+}
+
+function nowPlus30Rounded(): string {
+  const now = new Date()
+  now.setSeconds(0, 0)
+  now.setMinutes(now.getMinutes() + 30)
+  const rem = now.getMinutes() % 15
+  if (rem !== 0) now.setMinutes(now.getMinutes() + (15 - rem))
+  if (now.getHours() >= 24) return '23:45'
+  return `${pad(now.getHours())}:${pad(now.getMinutes())}`
 }
 
 export function ConfigurarHorariosForm() {
@@ -64,21 +111,58 @@ export function ConfigurarHorariosForm() {
   const [isPreviewing, startPreview] = useTransition()
   const [isConfirming, startConfirm] = useTransition()
 
-  const { register, handleSubmit, control, getValues, formState: { errors } } = useForm<GenerateScheduleInput>({
+  const monday = useMemo(mondayOfCurrentWeek, [])
+  const today  = useMemo(startOfTodayUtc, [])
+  const sunday = useMemo(() => addDays(monday, 6), [monday])
+
+  const isPastDay = (dayValue: number): boolean =>
+    addDays(monday, offsetForDay(dayValue)) < today
+
+  const { register, handleSubmit, control, getValues, setValue, formState: { errors } } = useForm<GenerateScheduleInput>({
     resolver: zodResolver(generateScheduleInputSchema),
     defaultValues: {
       selectedDays:  [],
       startTime:     '08:00',
       endTime:       '12:00',
       slotDuration:  30,
-      weekStartDate: nextWeekStart(),
+      weekStartDate: isoDate(monday),
     },
   })
 
+  const watchedSelectedDays = useWatch({ control, name: 'selectedDays' })
+  const watchedStartTime    = useWatch({ control, name: 'startTime' })
+
+  const todayWeekDay = useMemo(() => new Date().getDay(), [])
+  const todayInRange = useMemo(
+    () => addDays(monday, offsetForDay(todayWeekDay)) >= today,
+    [monday, todayWeekDay, today],
+  )
+
+  const minStartTime = useMemo<string | undefined>(() => {
+    if (!todayInRange) return undefined
+    if (!watchedSelectedDays?.includes(todayWeekDay)) return undefined
+    return nowPlus30Rounded()
+  }, [todayInRange, watchedSelectedDays, todayWeekDay])
+
+  useEffect(() => {
+    if (minStartTime && watchedStartTime < minStartTime) {
+      setValue('startTime', minStartTime, { shouldValidate: true, shouldDirty: true })
+    }
+  }, [minStartTime, watchedStartTime, setValue])
+
   function onPreviewSubmit(values: GenerateScheduleInput) {
     setFeedback(null)
+    const sanitized: GenerateScheduleInput = {
+      ...values,
+      selectedDays: values.selectedDays.filter((d) => !isPastDay(d)),
+    }
+    if (sanitized.selectedDays.length === 0) {
+      setFeedback({ kind: 'error', message: 'Selecciona al menos un día disponible.' })
+      setPreviewState(null)
+      return
+    }
     startPreview(async () => {
-      const { data, error } = await clientApi.doctor.schedule.preview.post(values)
+      const { data, error } = await clientApi.doctor.schedule.preview.post(sanitized)
       if (error) {
         const message = typeof error.value === 'object' && error.value && 'message' in error.value
           ? String((error.value as { message: unknown }).message)
@@ -94,8 +178,12 @@ export function ConfigurarHorariosForm() {
   function onConfirm() {
     const values = getValues()
     setFeedback(null)
+    const sanitized: GenerateScheduleInput = {
+      ...values,
+      selectedDays: values.selectedDays.filter((d) => !isPastDay(d)),
+    }
     startConfirm(async () => {
-      const { data, error } = await clientApi.doctor.schedule.generate.post(values)
+      const { data, error } = await clientApi.doctor.schedule.generate.post(sanitized)
       if (error) {
         const message = typeof error.value === 'object' && error.value && 'message' in error.value
           ? String((error.value as { message: unknown }).message)
@@ -119,11 +207,18 @@ export function ConfigurarHorariosForm() {
         <CardHeader>
           <CardTitle>Parámetros del horario</CardTitle>
           <CardDescription>
-            Selecciona los días, define el rango horario y la duración de cada cita.
+            Selecciona los días disponibles, define el rango horario y la duración de cada cita.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onPreviewSubmit)} className="space-y-5">
+            <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
+              <span className="font-medium">Semana seleccionada: </span>
+              <span className="text-muted-foreground">
+                {formatLong(monday)} – {formatLong(sunday)}
+              </span>
+            </div>
+
             <div className="space-y-2">
               <Label>Días disponibles</Label>
               <Controller
@@ -132,14 +227,21 @@ export function ConfigurarHorariosForm() {
                 render={({ field }) => (
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {DAYS.map((day) => {
-                      const checked = field.value.includes(day.value)
+                      const past    = isPastDay(day.value)
+                      const checked = field.value.includes(day.value) && !past
                       return (
                         <label
                           key={day.value}
-                          className="flex cursor-pointer items-center gap-2 rounded-md border border-input px-3 py-2 text-sm"
+                          className={cn(
+                            'flex items-center gap-2 rounded-md border border-input px-3 py-2 text-sm',
+                            past
+                              ? 'cursor-not-allowed opacity-50'
+                              : 'cursor-pointer hover:bg-accent',
+                          )}
                         >
                           <Checkbox
                             checked={checked}
+                            disabled={past}
                             onCheckedChange={(value) => {
                               const next = value
                                 ? [...field.value, day.value]
@@ -161,15 +263,32 @@ export function ConfigurarHorariosForm() {
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <div className="space-y-1">
-                <Label htmlFor="startTime">Hora de inicio</Label>
-                <Input id="startTime" type="time" {...register('startTime')} />
+                <Label>Hora de inicio</Label>
+                <Controller
+                  control={control}
+                  name="startTime"
+                  render={({ field }) => (
+                    <TimePicker value={field.value} onChange={field.onChange} min={minStartTime} />
+                  )}
+                />
+                {minStartTime && (
+                  <p className="whitespace-nowrap text-xs text-muted-foreground">
+                    Mínimo hoy: {minStartTime} (30 min en el futuro)
+                  </p>
+                )}
                 {errors.startTime && (
                   <p className="text-xs text-red-600">{errors.startTime.message}</p>
                 )}
               </div>
               <div className="space-y-1">
-                <Label htmlFor="endTime">Hora de fin</Label>
-                <Input id="endTime" type="time" {...register('endTime')} />
+                <Label>Hora de fin</Label>
+                <Controller
+                  control={control}
+                  name="endTime"
+                  render={({ field }) => (
+                    <TimePicker value={field.value} onChange={field.onChange} />
+                  )}
+                />
                 {errors.endTime && (
                   <p className="text-xs text-red-600">{errors.endTime.message}</p>
                 )}
@@ -198,13 +317,7 @@ export function ConfigurarHorariosForm() {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <Label htmlFor="weekStartDate">Inicio de la semana</Label>
-              <Input id="weekStartDate" type="date" {...register('weekStartDate')} />
-              {errors.weekStartDate && (
-                <p className="text-xs text-red-600">{errors.weekStartDate.message}</p>
-              )}
-            </div>
+            <input type="hidden" {...register('weekStartDate')} />
 
             <Button type="submit" disabled={isBusy}>
               {isPreviewing ? 'Calculando…' : 'Generar vista previa'}
@@ -246,7 +359,7 @@ export function ConfigurarHorariosForm() {
                 <TableBody>
                   {previewState.preview.map((slot) => (
                     <TableRow key={`${slot.eventDate}-${slot.startTime}`}>
-                      <TableCell className="capitalize">{formatDate(slot.eventDate)}</TableCell>
+                      <TableCell className="capitalize">{formatPreviewDate(slot.eventDate)}</TableCell>
                       <TableCell>{formatTime(slot.startTime)}</TableCell>
                       <TableCell>{formatTime(slot.endTime)}</TableCell>
                     </TableRow>

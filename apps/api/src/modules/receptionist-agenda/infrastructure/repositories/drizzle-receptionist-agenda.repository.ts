@@ -1,8 +1,8 @@
 import { injectable } from 'inversify'
-import { asc, eq } from 'drizzle-orm'
+import { and, asc, eq } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { DailyScheduleView } from '@project/db/src/schema/views'
-import { IAgendaRepository } from '../../domain/interfaces/receptionist-agenda.repository'
+import { IReceptionistAgendaRepository } from '../../domain/interfaces/receptionist-agenda.repository'
 import type { IAgendaSlot } from '../../domain/entities/agenda-slot.entity'
 
 type DailyScheduleRow = typeof DailyScheduleView.$inferSelect
@@ -23,15 +23,21 @@ function toAgendaSlot(row: DailyScheduleRow): IAgendaSlot {
 }
 
 @injectable()
-export class DrizzleAgendaRepository extends IAgendaRepository {
+export class DrizzleReceptionistAgendaRepository extends IReceptionistAgendaRepository {
   getDailyAgendaForReceptionist = async (
+    doctorId: string,
     fecha: string,
     tx: TxClient,
   ): Promise<IAgendaSlot[]> => {
     const rows = await tx
       .select()
       .from(DailyScheduleView)
-      .where(eq(DailyScheduleView.eventDate, fecha))
+      .where(
+        and(
+          eq(DailyScheduleView.doctorId, doctorId),
+          eq(DailyScheduleView.eventDate, fecha),
+        ),
+      )
       .orderBy(asc(DailyScheduleView.startTime))
     return rows.map(toAgendaSlot)
   }

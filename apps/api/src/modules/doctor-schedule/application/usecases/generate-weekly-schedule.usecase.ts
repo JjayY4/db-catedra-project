@@ -8,6 +8,7 @@ import type { GenerateScheduleInput } from '../dtos/inputs/generate-schedule.inp
 import type { GenerateScheduleOutput } from '../dtos/outputs/generate-schedule.output'
 
 export interface GenerateWeeklyScheduleCommand extends GenerateScheduleInput {
+  doctorId:    string
   auditUserId: string
 }
 
@@ -26,10 +27,10 @@ export class GenerateWeeklyScheduleUseCase extends BaseUseCase<
     if (candidates.length === 0) {
       return { created: 0, skipped: 0 }
     }
-    const conflictKeys = await this.repo.findOverlappingKeys(candidates, tx)
+    const conflictKeys = await this.repo.findOverlappingKeys(input.doctorId, candidates, tx)
     const toInsert = candidates.filter((c) => !conflictKeys.has(slotKey(c)))
     if (toInsert.length > 0) {
-      await this.repo.bulkInsert(toInsert, input.auditUserId, tx)
+      await this.repo.bulkInsert(input.doctorId, toInsert, input.auditUserId, tx)
     }
     return { created: toInsert.length, skipped: conflictKeys.size }
   }

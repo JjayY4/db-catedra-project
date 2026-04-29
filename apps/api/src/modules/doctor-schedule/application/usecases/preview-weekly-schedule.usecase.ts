@@ -7,14 +7,18 @@ import { calculateSlots, slotKey } from '../services/calculate-slots'
 import type { GenerateScheduleInput } from '../dtos/inputs/generate-schedule.input'
 import type { PreviewScheduleOutput } from '../dtos/outputs/preview-schedule.output'
 
+interface PreviewInput extends GenerateScheduleInput {
+  doctorId: string
+}
+
 @injectable()
 export class PreviewWeeklyScheduleUseCase extends BaseUseCase<
-  GenerateScheduleInput,
+  PreviewInput,
   PreviewScheduleOutput
 > {
   constructor(private readonly repo: IDoctorScheduleRepository) { super() }
 
-  protected async handle(input: GenerateScheduleInput, tx: TxClient): Promise<PreviewScheduleOutput> {
+  protected async handle(input: PreviewInput, tx: TxClient): Promise<PreviewScheduleOutput> {
     if (input.endTime <= input.startTime) {
       throw new AppError('La hora de fin debe ser posterior a la hora de inicio', 400)
     }
@@ -22,7 +26,7 @@ export class PreviewWeeklyScheduleUseCase extends BaseUseCase<
     if (candidates.length === 0) {
       return { preview: [], conflicting: [] }
     }
-    const conflictKeys = await this.repo.findOverlappingKeys(candidates, tx)
+    const conflictKeys = await this.repo.findOverlappingKeys(input.doctorId, candidates, tx)
     const preview:     typeof candidates = []
     const conflicting: typeof candidates = []
     for (const slot of candidates) {

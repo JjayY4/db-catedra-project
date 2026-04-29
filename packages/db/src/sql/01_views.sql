@@ -7,6 +7,7 @@
 CREATE OR REPLACE VIEW "DailyScheduleView" AS
 SELECT
   se.id                 AS "eventId",
+  se."doctorId",
   se."eventDate",
   se."startTime",
   se."endTime",

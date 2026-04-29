@@ -6,17 +6,17 @@ import { Users } from '@project/db/src/schema/iam.schema'
 type Seed = {
   email: string
   name: string
-  role: 'admin' | 'doctor' | 'patient' | 'receptionist'
+  role: 'doctor' | 'patient' | 'receptionist'
 }
 
 const DEFAULT_PASSWORD = 'password123'
 
 const seeds: Seed[] = [
-  { email: 'admin@clinic.com',       name: 'Clinic Admin',      role: 'admin' },
-  { email: 'dra.garcia@clinic.com',  name: 'Dra. García',       role: 'doctor' },
-  { email: 'dr.martinez@clinic.com', name: 'Dr. Martínez',      role: 'doctor' },
-  { email: 'recep1@clinic.com',      name: 'Receptionist One',  role: 'receptionist' },
-  { email: 'recep2@clinic.com',      name: 'Receptionist Two',  role: 'receptionist' },
+  { email: 'doctora.lopez@clinic.com', name: 'Dra. Ana López',     role: 'doctor' },
+  { email: 'doctor.perez@clinic.com',  name: 'Dr. Luis Pérez',     role: 'doctor' },
+  { email: 'recep1@clinic.com',        name: 'Receptionist One',   role: 'receptionist' },
+  { email: 'paciente1@clinic.com',     name: 'Paciente Uno',       role: 'patient' },
+  { email: 'paciente2@clinic.com',     name: 'Paciente Dos',       role: 'patient' },
 ]
 
 async function main() {

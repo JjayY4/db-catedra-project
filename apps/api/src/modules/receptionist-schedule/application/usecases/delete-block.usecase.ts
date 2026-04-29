@@ -2,17 +2,21 @@ import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
-import { IScheduleEventsRepository } from '../../domain/interfaces/receptionist-schedule.repository'
+import { IReceptionistScheduleRepository } from '../../domain/interfaces/receptionist-schedule.repository'
 
 interface Input {
   id: string
 }
 
-@injectable()
-export class DeleteBlockUseCase extends BaseUseCase<Input, void> {
-  constructor(private readonly events: IScheduleEventsRepository) { super() }
+interface Output {
+  success: boolean
+}
 
-  protected async handle({ id }: Input, tx: TxClient): Promise<void> {
+@injectable()
+export class DeleteBlockUseCase extends BaseUseCase<Input, Output> {
+  constructor(private readonly events: IReceptionistScheduleRepository) { super() }
+
+  protected async handle({ id }: Input, tx: TxClient): Promise<Output> {
     const event = await this.events.findById(id, tx)
     if (!event) throw new AppError('Bloqueo no encontrado', 404)
 
@@ -22,5 +26,6 @@ export class DeleteBlockUseCase extends BaseUseCase<Input, void> {
     }
 
     await this.events.deleteById(id, tx)
+    return { success: true }
   }
 }

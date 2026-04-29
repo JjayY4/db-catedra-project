@@ -12,8 +12,13 @@ import type {
 
 interface Input {
   userId:   string
-  page:     number
-  pageSize: number
+  page?:    string | number
+  pageSize?: string | number
+}
+
+function toPositiveInt(value: unknown, fallback: number): number {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
 }
 
 function todayIso(): string {
@@ -35,9 +40,12 @@ export class GetMyAppointmentsUseCase extends BaseUseCase<Input, MyAppointmentsO
       throw new AppError('Debes completar tu perfil antes de ver tus citas', 422)
     }
 
+    const page     = toPositiveInt(input.page, 1)
+    const pageSize = toPositiveInt(input.pageSize, 10)
+
     const { items, total } = await this.appointments.findByPatientDui(
       patient.dui,
-      { page: input.page, pageSize: input.pageSize },
+      { page, pageSize },
       tx,
     )
 
@@ -80,8 +88,8 @@ export class GetMyAppointmentsUseCase extends BaseUseCase<Input, MyAppointmentsO
       upcoming,
       past,
       total,
-      page:     input.page,
-      pageSize: input.pageSize,
+      page,
+      pageSize,
     }
   }
 }

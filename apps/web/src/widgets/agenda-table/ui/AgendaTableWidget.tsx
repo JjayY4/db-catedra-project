@@ -1,19 +1,11 @@
+import type { ReceptionistAgendaItemOutput } from '@project/api/src/modules/receptionist-agenda/application/dtos/outputs/receptionist-agenda-item.output'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { UnblockSlotButton } from '@/features/block-schedule'
 
-export interface AgendaItem {
-  slotId:             string
-  startTime:          string
-  endTime:            string
-  availabilityStatus: string
-  patientName:        string | null
-  bookingReason:      string | null
-  whatsappPhone:      string | null
-  appointmentId:      string | null
-}
+export type AgendaItem = ReceptionistAgendaItemOutput
 
 interface AgendaTableWidgetProps {
   items: AgendaItem[]
@@ -21,11 +13,11 @@ interface AgendaTableWidgetProps {
 }
 
 const ROW_VARIANT: Record<string, string> = {
-  available: 'bg-white',
-  busy:      'bg-blue-50 border-l-4 border-l-blue-400',
-  blocked:   'bg-amber-50 border-l-4 border-l-amber-400',
-  completed: 'bg-green-50 border-l-4 border-l-green-400',
-  cancelled: 'bg-red-50 border-l-4 border-l-red-300 opacity-60',
+  available: 'bg-card',
+  busy:      'bg-primary/5 border-l-4 border-l-primary',
+  blocked:   'bg-warning/10 border-l-4 border-l-warning',
+  completed: 'bg-success/10 border-l-4 border-l-success',
+  cancelled: 'bg-destructive/10 border-l-4 border-l-destructive opacity-70',
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -36,11 +28,11 @@ const STATUS_LABEL: Record<string, string> = {
   cancelled: 'Cancelado',
 }
 
-const BADGE_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
+const BADGE_VARIANT: Record<string, 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'> = {
   available: 'outline',
   busy:      'default',
-  blocked:   'secondary',
-  completed: 'default',
+  blocked:   'warning',
+  completed: 'success',
   cancelled: 'destructive',
 }
 
@@ -49,6 +41,16 @@ function formatTime(value: string): string {
 }
 
 export function AgendaTableWidget({ items }: AgendaTableWidgetProps) {
+  if (!Array.isArray(items)) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-center text-sm text-muted-foreground">
+          La agenda recibida no tiene el formato esperado.
+        </CardContent>
+      </Card>
+    )
+  }
+
   if (items.length === 0) {
     return (
       <Card>
@@ -75,7 +77,7 @@ export function AgendaTableWidget({ items }: AgendaTableWidgetProps) {
         <TableBody>
           {items.map((item) => {
             const status = item.availabilityStatus
-            const rowClass = ROW_VARIANT[status] ?? 'bg-white'
+            const rowClass = ROW_VARIANT[status] ?? 'bg-card'
             const label = STATUS_LABEL[status] ?? status
             const badge = BADGE_VARIANT[status] ?? 'outline'
             return (

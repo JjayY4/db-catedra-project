@@ -6,19 +6,16 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { clientApi } from '@/shared/api/client'
 import { completeProfileSchema, type CompleteProfileValues } from '@/entities/patient'
+import type { InsuranceOutput } from '@project/api/src/modules/patients/application/dtos/outputs/insurance.output'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
 
-export interface InsuranceOption {
-  id:           string
-  insurerName:  string
-  coverageType: string
-}
+export type InsuranceOption = InsuranceOutput
 
 interface CompleteProfileFormProps {
-  insurances: InsuranceOption[]
+  insurances: InsuranceOutput[]
 }
 
 export function CompleteProfileForm({ insurances }: CompleteProfileFormProps) {
@@ -44,11 +41,12 @@ export function CompleteProfileForm({ insurances }: CompleteProfileFormProps) {
       insuranceId: values.insuranceId ?? null,
     })
     if (error) {
-      setServerError(
-        typeof error.value === 'object' && error.value && 'message' in error.value
-          ? String((error.value as { message: string }).message)
-          : 'No se pudo guardar tu perfil. Intenta de nuevo.',
-      )
+      const value = error.value
+      const message =
+        value && typeof value === 'object' && 'message' in value && typeof value.message === 'string'
+          ? value.message
+          : 'No se pudo guardar tu perfil. Intenta de nuevo.'
+      setServerError(message)
       return
     }
     router.push('/dashboard')
@@ -57,7 +55,7 @@ export function CompleteProfileForm({ insurances }: CompleteProfileFormProps) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-      <div className="flex items-center gap-2 text-xs text-slate-500">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5">Paso 2</span>
         <span>Completa tu información personal</span>
       </div>

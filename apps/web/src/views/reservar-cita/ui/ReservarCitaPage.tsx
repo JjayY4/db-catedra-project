@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { api } from '@/shared/api/client'
+import { createServerApi } from '@/shared/api/server'
 import { requireAuth } from '@/shared/auth/guards.server'
 import { ReservarCitaForm } from '@/features/booking'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,6 +11,7 @@ interface ReservarCitaPageProps {
 export async function ReservarCitaPage({ eventId }: ReservarCitaPageProps) {
   await requireAuth()
 
+  const api = await createServerApi()
   const { data: slot, error } = await api['schedule-events']({ id: eventId }).get()
   if (error || !slot) {
     notFound()

@@ -7,6 +7,7 @@ export const BlockTypeSchema = t.Union([
 ])
 
 export const CreateBlockInputSchema = t.Object({
+  doctorId:  t.String({ format: 'uuid' }),
   date:      t.String({ format: 'date' }),
   startTime: t.String(),
   endTime:   t.String(),

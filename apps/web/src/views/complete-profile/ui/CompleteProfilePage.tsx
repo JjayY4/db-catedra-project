@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
-import { api } from '@/shared/api/client'
+import { createServerApi } from '@/shared/api/server'
 import { requireAuth } from '@/shared/auth/guards.server'
-import { CompleteProfileForm, type InsuranceOption } from '@/features/patient-registration'
+import { CompleteProfileForm } from '@/features/patient-registration'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export async function CompleteProfilePage() {
@@ -11,7 +11,8 @@ export async function CompleteProfilePage() {
     redirect('/verify-email')
   }
 
-  const [{ data: existing }, { data: insurancesData }] = await Promise.all([
+  const api = await createServerApi()
+  const [{ data: existing }, { data: insurances }] = await Promise.all([
     api.patients.me.get(),
     api.patients.insurances.get(),
   ])
@@ -20,8 +21,6 @@ export async function CompleteProfilePage() {
     redirect('/dashboard')
   }
 
-  const insurances: InsuranceOption[] = insurancesData ?? []
-
   return (
     <Card className="w-full max-w-xl">
       <CardHeader>
@@ -29,7 +28,7 @@ export async function CompleteProfilePage() {
         <CardDescription>Necesitamos algunos datos para crear tu expediente.</CardDescription>
       </CardHeader>
       <CardContent>
-        <CompleteProfileForm insurances={insurances} />
+        <CompleteProfileForm insurances={insurances ?? []} />
       </CardContent>
     </Card>
   )

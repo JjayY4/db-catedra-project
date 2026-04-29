@@ -18,13 +18,28 @@ import { doctorAgendaRoutes } from './modules/doctor-agenda/presentation/doctor-
 
 export const app = new Elysia({ adapter: BunAdapter })
   .use(cors({
-    origin: process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3001',
+    origin:      process.env.NEXT_PUBLIC_WEB_URL ?? 'http://localhost:3001',
+    credentials: true,
   }))
   .decorate('container', container)
-  .onError(({ error }) => {
+  .onError(({ error, code }) => {
     if (error instanceof AppError) {
-      return Response.json({ message: error.message }, { status: error.statusCode })
+      return Response.json(
+        { message: error.message },
+        { status: error.statusCode },
+      )
     }
+    if (code === 'VALIDATION') {
+      return Response.json(
+        { message: 'Validation failed', code },
+        { status: 422 },
+      )
+    }
+    if (code === 'NOT_FOUND') {
+      return Response.json({ message: 'Not Found', code }, { status: 404 })
+    }
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
+    return Response.json({ message, code }, { status: 500 })
   })
   .use(healthRoutes)
   .use(betterAuthPlugin)

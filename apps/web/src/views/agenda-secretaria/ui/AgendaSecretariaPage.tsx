@@ -1,45 +1,94 @@
-import { api } from '@/shared/api/client'
-import { AgendaTableWidget, DateNav, type AgendaItem } from '@/widgets/agenda-table'
+import { createServerApi } from '@/shared/api/server'
+import { AgendaTableWidget, DateNav } from '@/widgets/agenda-table'
 import { BloquearHorariosDialog } from '@/features/block-schedule'
+import { DoctorPicker } from '@/features/doctor-picker'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert } from '@/components/ui/alert'
 
 interface AgendaSecretariaPageProps {
-  fecha: string
+  doctorId?: string
+  fecha:     string
 }
 
-export async function AgendaSecretariaPage({ fecha }: AgendaSecretariaPageProps) {
-  const nextDay = new Date(`${fecha}T00:00:00Z`)
-  nextDay.setUTCDate(nextDay.getUTCDate() + 1)
-  const date_to = nextDay.toISOString().slice(0, 10)
+export async function AgendaSecretariaPage({ doctorId, fecha }: AgendaSecretariaPageProps) {
+  const api = await createServerApi()
+  const { data: doctors, error: doctorsError } = await api.users.doctors.get()
 
-  const { data, error } = await api.agenda.get({ query: { fecha, date_from: fecha, date_to } })
-
-  if (error) {
+  if (doctorsError || !doctors) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-slate-900">Agenda</h1>
-        <p className="text-sm text-red-600">
-          No se pudo cargar la agenda. Intenta nuevamente más tarde.
-        </p>
+        <h1>Agenda</h1>
+        <Alert variant="destructive" className="text-sm">
+          No se pudo cargar la lista de médicos.
+        </Alert>
       </div>
     )
   }
 
-  const items: AgendaItem[] = data ?? []
+  const selectedDoctor = doctorId ? doctors.find((d) => d.id === doctorId) : undefined
+
+  if (!selectedDoctor) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">Reception</p>
+          <h1>Selecciona un médico</h1>
+          <p className="text-muted-foreground mt-1">
+            Elige al profesional para administrar su agenda.
+          </p>
+        </header>
+        <DoctorPicker
+          doctors={doctors}
+          baseHref="/agenda"
+          extraQuery={{ fecha }}
+        />
+      </div>
+    )
+  }
+
+  const { data, error } = await api.agenda.daily.get({
+    query: { doctor_id: selectedDoctor.id, fecha },
+  })
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Agenda diaria</h1>
-          <p className="text-sm text-slate-500 mt-1">Fecha: {fecha}</p>
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">Reception</p>
+          <h1>Agenda de {selectedDoctor.name}</h1>
+          <p className="text-sm text-muted-foreground mt-1">Fecha: {fecha}</p>
         </div>
         <div className="flex items-center gap-3">
-          <DateNav fecha={fecha} />
-          <BloquearHorariosDialog />
+          <DateNav fecha={fecha} doctorId={selectedDoctor.id} />
+          <BloquearHorariosDialog doctorId={selectedDoctor.id} />
         </div>
       </div>
 
-      <AgendaTableWidget items={items} fecha={fecha} />
+      <DoctorPicker
+        doctors={doctors}
+        baseHref="/agenda"
+        currentId={selectedDoctor.id}
+        extraQuery={{ fecha }}
+      />
+
+      {error ? (
+        <Card>
+          <CardContent>
+            <Alert variant="destructive" className="text-sm">
+              No se pudo cargar la agenda. Intenta nuevamente más tarde.
+            </Alert>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">Slots del día</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AgendaTableWidget items={data} fecha={fecha} />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

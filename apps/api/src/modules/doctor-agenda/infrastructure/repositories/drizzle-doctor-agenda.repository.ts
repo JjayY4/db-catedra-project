@@ -1,5 +1,5 @@
 import { injectable } from 'inversify'
-import { asc, eq, inArray } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { DailyScheduleView } from '@project/db/src/schema/views'
 import { ClinicalConsultations } from '@project/db/src/schema/clinical-consultations.schema'
@@ -49,7 +49,11 @@ function toEntity(row: ViewRow, diagnoses: Map<string, string>): IAgendaItem {
 
 @injectable()
 export class DrizzleDoctorAgendaRepository extends IDoctorAgendaRepository {
-  getDailyAgenda = async (fecha: string, tx: TxClient): Promise<IAgendaItem[]> => {
+  getDailyAgenda = async (
+    doctorId: string,
+    fecha: string,
+    tx: TxClient,
+  ): Promise<IAgendaItem[]> => {
     const rows = await tx
       .select({
         eventId:            DailyScheduleView.eventId,
@@ -63,7 +67,12 @@ export class DrizzleDoctorAgendaRepository extends IDoctorAgendaRepository {
         lastName:           DailyScheduleView.lastName,
       })
       .from(DailyScheduleView)
-      .where(eq(DailyScheduleView.eventDate, fecha))
+      .where(
+        and(
+          eq(DailyScheduleView.doctorId, doctorId),
+          eq(DailyScheduleView.eventDate, fecha),
+        ),
+      )
       .orderBy(asc(DailyScheduleView.startTime))
 
     const appointmentIds = rows

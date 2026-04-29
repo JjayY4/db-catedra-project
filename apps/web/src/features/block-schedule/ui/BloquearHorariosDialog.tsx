@@ -13,7 +13,11 @@ import {
 import { Button } from '@/components/ui/button'
 import { BloquearHorariosForm } from './BloquearHorariosForm'
 
-export function BloquearHorariosDialog() {
+interface BloquearHorariosDialogProps {
+  doctorId: string
+}
+
+export function BloquearHorariosDialog({ doctorId }: BloquearHorariosDialogProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [, startTransition] = useTransition()
@@ -29,6 +33,7 @@ export function BloquearHorariosDialog() {
           </DialogDescription>
         </DialogHeader>
         <BloquearHorariosForm
+          doctorId={doctorId}
           onSuccess={() => {
             setOpen(false)
             startTransition(() => router.refresh())

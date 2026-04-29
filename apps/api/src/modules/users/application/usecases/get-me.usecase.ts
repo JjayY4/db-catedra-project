@@ -15,6 +15,7 @@ export class GetMeUseCase extends BaseUseCase<{ id: string }, UserOutput> {
     return {
       id:            user.id,
       email:         user.email,
+      name:          user.name,
       role:          user.role,
       accountStatus: user.accountStatus,
       createdAt:     user.createdAt,

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 
 interface BloquearHorariosFormProps {
+  doctorId:   string
   onSuccess?: () => void
   onCancel?:  () => void
 }
@@ -28,7 +29,7 @@ const BLOCK_TYPE_OPTIONS: Array<{ value: CreateBlockInput['blockType']; label: s
   { value: 'block',    label: 'Bloqueo general' },
 ]
 
-export function BloquearHorariosForm({ onSuccess, onCancel }: BloquearHorariosFormProps) {
+export function BloquearHorariosForm({ doctorId, onSuccess, onCancel }: BloquearHorariosFormProps) {
   const [serverError, setServerError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -51,7 +52,7 @@ export function BloquearHorariosForm({ onSuccess, onCancel }: BloquearHorariosFo
     setServerError(null)
     setSubmitting(true)
     try {
-      const { error } = await clientApi['schedule-events'].block.post(values)
+      const { error } = await clientApi['schedule-events'].block.post({ ...values, doctorId })
       if (error) {
         const message = typeof error.value === 'object' && error.value && 'message' in error.value
           ? String((error.value as { message: unknown }).message)

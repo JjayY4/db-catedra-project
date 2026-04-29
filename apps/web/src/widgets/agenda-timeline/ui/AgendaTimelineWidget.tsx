@@ -1,20 +1,12 @@
 import Link from 'next/link'
+import type { AgendaItemOutput } from '@project/api/src/modules/doctor-agenda/application/dtos/outputs/agenda-item.output'
 import { Card, CardContent } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
-type AgendaStatus = 'disponible' | 'reservado' | 'completado' | 'cancelado'
+type AgendaStatus = AgendaItemOutput['status']
 
-export interface AgendaItem {
-  slotId:        string
-  startTime:     string
-  endTime:       string
-  patientId:     string | null
-  patientName:   string | null
-  bookingReason: string | null
-  status:        AgendaStatus
-  mainDiagnosis: string | null
-}
+export type AgendaItem = AgendaItemOutput
 
 interface AgendaTimelineWidgetProps {
   items: AgendaItem[]
@@ -30,24 +22,24 @@ const STATUS_LABEL: Record<AgendaStatus, string> = {
 
 const STATUS_STYLES: Record<AgendaStatus, { card: string; badge: string; stripe: string }> = {
   disponible: {
-    card:   'bg-gray-50 border-gray-200',
-    badge:  'bg-gray-100 text-gray-700',
-    stripe: 'bg-gray-300',
+    card:   'bg-muted/40 border-border',
+    badge:  'bg-muted text-muted-foreground',
+    stripe: 'bg-border',
   },
   reservado: {
-    card:   'bg-blue-50 border-blue-200',
-    badge:  'bg-blue-100 text-blue-700',
-    stripe: 'bg-blue-400',
+    card:   'bg-primary/5 border-primary/30',
+    badge:  'bg-primary/15 text-primary',
+    stripe: 'bg-primary',
   },
   completado: {
-    card:   'bg-green-50 border-green-200',
-    badge:  'bg-green-100 text-green-700',
-    stripe: 'bg-green-500',
+    card:   'bg-success/10 border-success/30',
+    badge:  'bg-success/20 text-success',
+    stripe: 'bg-success',
   },
   cancelado: {
-    card:   'bg-red-50 border-red-200',
-    badge:  'bg-red-100 text-red-700',
-    stripe: 'bg-red-300',
+    card:   'bg-destructive/10 border-destructive/30',
+    badge:  'bg-destructive/15 text-destructive',
+    stripe: 'bg-destructive',
   },
 }
 
@@ -111,15 +103,15 @@ export function AgendaTimelineWidget({ items, fecha }: AgendaTimelineWidgetProps
             const isFree = item.status === 'disponible'
             return (
               <li key={item.slotId}>
-                <Card className={cn('flex flex-row gap-0 border', style.card)}>
-                  <span aria-hidden className={cn('w-1.5 shrink-0 rounded-l-xl', style.stripe)} />
+                <Card className={cn('flex flex-row gap-0 border py-0', style.card)}>
+                  <span aria-hidden className={cn('w-1.5 shrink-0 self-stretch rounded-l-xl', style.stripe)} />
                   <CardContent className="flex w-full flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-1">
                       <p className="font-mono text-sm text-muted-foreground">
                         {formatTime(item.startTime)} – {formatTime(item.endTime)}
                       </p>
                       {isFree ? (
-                        <p className="text-sm italic text-gray-400">Cupo disponible</p>
+                        <p className="text-sm italic text-muted-foreground">Cupo disponible</p>
                       ) : (
                         <div className="space-y-0.5">
                           <p className="text-base font-semibold">
@@ -129,7 +121,7 @@ export function AgendaTimelineWidget({ items, fecha }: AgendaTimelineWidgetProps
                             <p className="text-sm text-muted-foreground">{item.bookingReason}</p>
                           )}
                           {item.status === 'completado' && item.mainDiagnosis && (
-                            <p className="text-sm italic text-green-700">
+                            <p className="text-sm italic text-success">
                               Diagnóstico: {item.mainDiagnosis}
                             </p>
                           )}

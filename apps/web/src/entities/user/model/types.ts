@@ -11,7 +11,6 @@ export interface User {
 }
 
 export const ROLE_DASHBOARD: Record<UserRole, string> = {
-  [UserRole.Admin]:        '/dashboard/admin',
   [UserRole.Doctor]:       '/dashboard/doctor',
   [UserRole.Patient]:      '/dashboard/patient',
   [UserRole.Receptionist]: '/dashboard/receptionist',

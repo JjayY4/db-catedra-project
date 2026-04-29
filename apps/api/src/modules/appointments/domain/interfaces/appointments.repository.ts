@@ -1,13 +1,11 @@
 import type { TxClient } from '@project/db/src/client'
-import { IBaseRepository } from '~/common/base/base-repository.abstract'
-import type { RepositoryMethod } from '~/common/base/repository-method.type'
 import type { IAppointment } from '../entities/appointment.entity'
 
 export interface AppointmentWithEvent extends IAppointment {
-  eventDate:          string
-  startTime:          string
-  endTime:            string
-  availabilityStatus: string
+  eventDate:           string
+  startTime:           string
+  endTime:             string
+  availabilityStatus:  string
   mainDiagnosis:       string | null
   prescribedTreatment: string | null
 }
@@ -23,12 +21,18 @@ export interface BookAppointmentData {
   bookingReason: string
 }
 
-export abstract class IAppointmentsRepository extends IBaseRepository<IAppointment> {
-  abstract findByEventId:    RepositoryMethod<[eventId: string], IAppointment | null>
-  abstract book:             (data: BookAppointmentData, tx: TxClient) => Promise<IAppointment>
-  abstract findByPatientDui: (
+export interface PaginatedAppointments {
+  items: AppointmentWithEvent[]
+  total: number
+}
+
+export abstract class IAppointmentsRepository {
+  abstract findById(id: string, tx: TxClient): Promise<IAppointment | null>
+  abstract findByEventId(eventId: string, tx: TxClient): Promise<IAppointment | null>
+  abstract book(data: BookAppointmentData, tx: TxClient): Promise<IAppointment>
+  abstract findByPatientDui(
     patientDui: string,
     pagination: PaginationInput,
     tx: TxClient,
-  ) => Promise<{ items: AppointmentWithEvent[]; total: number }>
+  ): Promise<PaginatedAppointments>
 }

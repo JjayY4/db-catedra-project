@@ -49,7 +49,7 @@ export function VerifyEmailPage({ email }: VerifyEmailPageProps) {
         <Button onClick={resend} disabled={status === 'sending'} className="w-full">
           {status === 'sending' ? 'Enviando…' : 'Reenviar correo'}
         </Button>
-        <p className="text-xs text-slate-500 text-center">
+        <p className="text-xs text-muted-foreground text-center">
           ¿Ya verificaste tu correo? Recarga esta página para continuar.
         </p>
       </CardContent>

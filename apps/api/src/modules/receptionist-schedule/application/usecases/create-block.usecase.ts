@@ -2,9 +2,10 @@ import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
-import { IScheduleEventsRepository } from '../../domain/interfaces/receptionist-schedule.repository'
-import type { ScheduleEventType, IScheduleEvent } from '../../domain/entities/schedule-event.entity'
+import { IReceptionistScheduleRepository } from '../../domain/interfaces/receptionist-schedule.repository'
+import type { ScheduleEventType } from '../../domain/entities/schedule-event.entity'
 import type { CreateBlockInput } from '../dtos/inputs/create-block.input'
+import type { ScheduleEventOutput } from '../dtos/outputs/schedule-event.output'
 
 const SLOT_MINUTES = 30
 
@@ -50,14 +51,14 @@ function planSlots(date: string, startTime: string, endTime: string): PlannedSlo
 }
 
 @injectable()
-export class CreateBlockUseCase extends BaseUseCase<Input, IScheduleEvent[]> {
-  constructor(private readonly events: IScheduleEventsRepository) { super() }
+export class CreateBlockUseCase extends BaseUseCase<Input, ScheduleEventOutput[]> {
+  constructor(private readonly events: IReceptionistScheduleRepository) { super() }
 
-  protected async handle(input: Input, tx: TxClient): Promise<IScheduleEvent[]> {
+  protected async handle(input: Input, tx: TxClient): Promise<ScheduleEventOutput[]> {
     const slots = planSlots(input.date, input.startTime, input.endTime)
 
     for (const slot of slots) {
-      const conflict = await this.events.findActiveAppointmentForSlot(slot, tx)
+      const conflict = await this.events.findActiveAppointmentForSlot(input.doctorId, slot, tx)
       if (conflict) {
         throw new AppError(
           `El slot ${conflict.startTime} tiene una cita activa con ${conflict.patientName}, cancélala primero`,
@@ -66,10 +67,21 @@ export class CreateBlockUseCase extends BaseUseCase<Input, IScheduleEvent[]> {
       }
     }
 
-    return this.events.insertBlocks(
+    const events = await this.events.insertBlocks(
+      input.doctorId,
       slots.map((slot) => ({ ...slot, eventType: input.blockType as ScheduleEventType })),
       input.auditUserId,
       tx,
     )
+
+    return events.map((event) => ({
+      id:                 event.id,
+      doctorId:           event.doctorId,
+      eventDate:          event.eventDate,
+      startTime:          event.startTime,
+      endTime:            event.endTime,
+      eventType:          event.eventType,
+      availabilityStatus: event.availabilityStatus,
+    }))
   }
 }

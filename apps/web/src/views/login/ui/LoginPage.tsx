@@ -12,16 +12,16 @@ export function LoginPage({ registered = false }: { registered?: boolean }) {
       </CardHeader>
       <CardContent className="space-y-4">
         {registered && (
-          <Alert className="border-green-200 bg-green-50 text-green-800 text-sm p-3 rounded-md">
-            Account created. Sign in with your credentials.
+          <Alert className="border-success/30 bg-success/10 text-sm">
+            <p className="text-foreground">Account created. Sign in with your credentials.</p>
           </Alert>
         )}
         <LoginForm />
       </CardContent>
       <CardFooter className="flex justify-center">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-muted-foreground">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="font-medium text-slate-900 underline underline-offset-4">
+          <Link href="/register" className="font-medium text-primary underline underline-offset-4">
             Create one
           </Link>
         </p>

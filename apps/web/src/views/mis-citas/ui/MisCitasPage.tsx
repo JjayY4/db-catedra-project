@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { api } from '@/shared/api/client'
+import { createServerApi } from '@/shared/api/server'
 import { requireAuth } from '@/shared/auth/guards.server'
 import { AppointmentListWidgetCard } from '@/widgets/appointment-list'
 import { Card, CardContent } from '@/components/ui/card'
@@ -12,9 +12,9 @@ interface MisCitasPageProps {
 export async function MisCitasPage({ page: pageParam }: MisCitasPageProps) {
   await requireAuth()
 
-  const page = Number(pageParam ?? '1') || 1
+  const api = await createServerApi()
   const { data, error } = await api.appointments.my.get({
-    query: { page: String(page), pageSize: '10' },
+    query: { page: pageParam ?? '1', pageSize: '10' },
   })
 
   if (error) {
@@ -22,7 +22,7 @@ export async function MisCitasPage({ page: pageParam }: MisCitasPageProps) {
       redirect('/complete-profile')
     }
     return (
-      <Card className="w-full max-w-3xl">
+      <Card className="w-full">
         <CardContent>
           <Alert variant="destructive" className="text-sm">
             No se pudieron cargar tus citas. Intenta de nuevo más tarde.
@@ -32,10 +32,5 @@ export async function MisCitasPage({ page: pageParam }: MisCitasPageProps) {
     )
   }
 
-  return (
-    <AppointmentListWidgetCard
-      upcoming={data?.upcoming ?? []}
-      past={data?.past ?? []}
-    />
-  )
+  return <AppointmentListWidgetCard upcoming={data.upcoming} past={data.past} />
 }

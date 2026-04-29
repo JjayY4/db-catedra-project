@@ -93,12 +93,11 @@ async function main() {
     console.log(`Inserted ${insertedInsurances.length} MedicalInsurances`)
 
     // ----- 2) Users (25) ---------------------------------------------------
-    // Distribution: 8 patients, 8 doctors, 5 receptionists, 4 admins
+    // Distribution: 12 patients, 8 doctors, 5 receptionists
     const roleSequence: UserRole[] = [
-      ...Array<UserRole>(8).fill('patient'),
+      ...Array<UserRole>(12).fill('patient'),
       ...Array<UserRole>(8).fill('doctor'),
       ...Array<UserRole>(5).fill('receptionist'),
-      ...Array<UserRole>(4).fill('admin'),
     ]
     const userRows = roleSequence.map((role, i) => {
       const first = firstNames[i % firstNames.length]!
@@ -209,12 +208,14 @@ async function main() {
     const scheduleRows = eventSeeds.map((e, i) => {
       const eventDate = addDays(today, e.offsetDays)
       const auditUser = staffUsers[i % staffUsers.length]!
+      const doctorUser = doctorUsers[i % doctorUsers.length]!
       return {
         eventDate: fmtDate(eventDate),
         startTime: fmtTime(e.hour),
         endTime: fmtTime(e.hour + 1),
         eventType: e.eventType,
         availabilityStatus: e.availabilityStatus,
+        doctorId: doctorUser.id,
         auditUserId: auditUser.id,
       }
     })
@@ -239,13 +240,15 @@ async function main() {
     if (appointmentEligibleEvents.length < 25) {
       const needed = 25 - appointmentEligibleEvents.length
       const extraRows = Array.from({ length: needed }, (_, i) => {
-        const auditUser = staffUsers[i % staffUsers.length]!
+        const auditUser  = staffUsers[i % staffUsers.length]!
+        const doctorUser = doctorUsers[i % doctorUsers.length]!
         return {
           eventDate: fmtDate(addDays(today, 30 + i)),
           startTime: fmtTime(8 + (i % 8)),
           endTime: fmtTime(9 + (i % 8)),
           eventType: 'appointment' as const,
           availabilityStatus: 'available' as const,
+          doctorId:    doctorUser.id,
           auditUserId: auditUser.id,
         }
       })
@@ -316,13 +319,15 @@ async function main() {
       // Top up: create extra past 'completed' events + appointments to reach 25.
       const needed = 25 - completedAppointments.length
       const extraEventRows = Array.from({ length: needed }, (_, i) => {
-        const auditUser = staffUsers[(i + 7) % staffUsers.length]!
+        const auditUser  = staffUsers[(i + 7) % staffUsers.length]!
+        const doctorUser = doctorUsers[(i + 1) % doctorUsers.length]!
         return {
           eventDate: fmtDate(addDays(today, -30 - i)),
           startTime: fmtTime(8 + (i % 8)),
           endTime: fmtTime(9 + (i % 8)),
           eventType: 'appointment' as EventType,
           availabilityStatus: 'completed' as AvailabilityStatus,
+          doctorId:    doctorUser.id,
           auditUserId: auditUser.id,
         }
       })

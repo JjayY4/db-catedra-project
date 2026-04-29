@@ -4,14 +4,14 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useSession } from '@/shared/auth/client'
-import type { AvailableSlot } from '@/entities/schedule-event'
+import type { AvailableSlotOutput } from '@project/api/src/modules/receptionist-schedule/application/dtos/outputs/available-slot.output'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 import { dayLabel, formatDateLabel, formatTime, shiftWeek } from '../lib/week'
 
 interface CalendarioDisponibilidadWidgetProps {
-  slots:       AvailableSlot[]
+  slots:       AvailableSlotOutput[]
   currentWeek: string
   days:        string[]
 }
@@ -23,9 +23,9 @@ export function CalendarioDisponibilidadWidget({
 }: CalendarioDisponibilidadWidgetProps) {
   const router = useRouter()
   const session = useSession()
-  const [showLoginPrompt, setShowLoginPrompt] = useState<AvailableSlot | null>(null)
+  const [showLoginPrompt, setShowLoginPrompt] = useState<AvailableSlotOutput | null>(null)
 
-  const slotsByDay = new Map<string, AvailableSlot[]>()
+  const slotsByDay = new Map<string, AvailableSlotOutput[]>()
   for (const slot of slots) {
     const list = slotsByDay.get(slot.eventDate) ?? []
     list.push(slot)
@@ -35,7 +35,7 @@ export function CalendarioDisponibilidadWidget({
   const previousWeek = shiftWeek(currentWeek, -1)
   const nextWeek = shiftWeek(currentWeek, 1)
 
-  function handleSlotClick(slot: AvailableSlot) {
+  function handleSlotClick(slot: AvailableSlotOutput) {
     if (session.data) {
       router.push(`/reservar/${slot.id}`)
       return
@@ -52,7 +52,7 @@ export function CalendarioDisponibilidadWidget({
         >
           ← Semana anterior
         </Link>
-        <p className="text-sm font-medium text-slate-700">{currentWeek}</p>
+        <p className="text-sm font-medium text-foreground">{currentWeek}</p>
         <Link
           href={`/disponibilidad?week=${nextWeek}`}
           className={buttonVariants({ variant: 'outline', size: 'sm' })}
@@ -69,23 +69,23 @@ export function CalendarioDisponibilidadWidget({
             const daySlots = slotsByDay.get(isoDate) ?? []
             return (
               <div key={isoDate} className="flex flex-col gap-1">
-                <div className="text-center text-xs font-semibold text-slate-600">
+                <div className="text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {dayLabel(index)} {formatDateLabel(isoDate)}
                 </div>
                 {daySlots.length === 0 ? (
-                  <div className="text-center text-xs text-slate-400 py-3">—</div>
+                  <div className="text-center text-xs text-muted-foreground/60 py-3">—</div>
                 ) : (
                   daySlots.map((slot) => (
                     <button
                       key={slot.id}
                       type="button"
                       onClick={() => handleSlotClick(slot)}
-                      className="rounded-md border border-slate-200 bg-white p-2 text-left text-xs hover:bg-slate-50 transition-colors"
+                      className="rounded-md border border-border bg-card p-2 text-left text-xs transition-colors hover:border-primary/40 hover:bg-primary/5"
                     >
-                      <span className="block font-medium text-slate-900">
+                      <span className="block font-semibold text-foreground">
                         {formatTime(slot.startTime)}
                       </span>
-                      <span className="block text-slate-500">{formatTime(slot.endTime)}</span>
+                      <span className="block text-muted-foreground">{formatTime(slot.endTime)}</span>
                     </button>
                   ))
                 )}
@@ -102,8 +102,8 @@ export function CalendarioDisponibilidadWidget({
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
         >
           <Card className="w-full max-w-sm p-4 space-y-3">
-            <h2 className="text-base font-semibold text-slate-900">Inicia sesión para reservar</h2>
-            <p className="text-sm text-slate-600">
+            <h2 className="text-base font-semibold">Inicia sesión para reservar</h2>
+            <p className="text-sm text-muted-foreground">
               Necesitas tener una cuenta para confirmar tu cita.
             </p>
             <div className="flex gap-2 justify-end">

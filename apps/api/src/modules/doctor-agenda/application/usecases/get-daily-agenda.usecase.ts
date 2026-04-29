@@ -7,15 +7,20 @@ import type { AgendaItemOutput } from '../dtos/outputs/agenda-item.output'
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
+interface Input {
+  doctorId: string
+  fecha:    string
+}
+
 @injectable()
-export class GetDailyAgendaUseCase extends BaseUseCase<{ fecha: string }, AgendaItemOutput[]> {
+export class GetDailyAgendaUseCase extends BaseUseCase<Input, AgendaItemOutput[]> {
   constructor(private readonly repo: IDoctorAgendaRepository) { super() }
 
-  protected async handle({ fecha }: { fecha: string }, tx: TxClient): Promise<AgendaItemOutput[]> {
+  protected async handle({ doctorId, fecha }: Input, tx: TxClient): Promise<AgendaItemOutput[]> {
     if (!DATE_PATTERN.test(fecha)) {
       throw new AppError('Formato de fecha inválido. Use YYYY-MM-DD', 400)
     }
-    const items = await this.repo.getDailyAgenda(fecha, tx)
+    const items = await this.repo.getDailyAgenda(doctorId, fecha, tx)
     return items.map((item) => ({
       slotId:        item.slotId,
       startTime:     item.startTime,

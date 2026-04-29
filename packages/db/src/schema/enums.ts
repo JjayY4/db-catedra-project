@@ -1,7 +1,7 @@
 import { pgEnum } from 'drizzle-orm/pg-core'
 
 export const userRoleEnum = pgEnum('user_role', [
-  'admin', 'doctor', 'patient', 'receptionist',
+  'doctor', 'patient', 'receptionist',
 ])
 
 export const accountStatusEnum = pgEnum('account_status', [

@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 interface DateNavProps {
-  fecha: string
+  fecha:    string
+  doctorId: string
 }
 
 function shiftDate(iso: string, days: number): string {
@@ -16,13 +17,13 @@ function shiftDate(iso: string, days: number): string {
   return d.toISOString().slice(0, 10)
 }
 
-export function DateNav({ fecha }: DateNavProps) {
+export function DateNav({ fecha, doctorId }: DateNavProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
   const navigate = (next: string) => {
     startTransition(() => {
-      router.push(`/agenda?fecha=${next}`)
+      router.push(`/agenda?doctor_id=${doctorId}&fecha=${next}`)
     })
   }
 

@@ -14,9 +14,9 @@ export const appointmentsRoutes = createRouter({ prefix: '/appointments' })
     ({ container, user, body }) =>
       container.get(BookAppointmentUseCase).execute({ ...body, userId: user.id }),
     {
+      auth:     true,
       body:     BookAppointmentInputSchema,
       response: AppointmentOutputSchema,
-      auth:     true,
     },
   )
   .get(
@@ -24,15 +24,15 @@ export const appointmentsRoutes = createRouter({ prefix: '/appointments' })
     ({ container, user, query }) =>
       container.get(GetMyAppointmentsUseCase).execute({
         userId:   user.id,
-        page:     Number(query.page ?? 1) || 1,
-        pageSize: Number(query.pageSize ?? 10) || 10,
+        page:     query.page,
+        pageSize: query.pageSize,
       }),
     {
+      auth:  true,
       query: t.Object({
         page:     t.Optional(t.String()),
         pageSize: t.Optional(t.String()),
       }),
       response: MyAppointmentsOutputSchema,
-      auth:     true,
     },
   )

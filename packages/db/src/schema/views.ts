@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm'
 
 export const DailyScheduleView = pgView('DailyScheduleView', {
   eventId:            uuid('eventId'),
+  doctorId:           uuid('doctorId'),
   eventDate:          date('eventDate'),
   startTime:          time('startTime'),
   endTime:            time('endTime'),
@@ -16,6 +17,7 @@ export const DailyScheduleView = pgView('DailyScheduleView', {
 }).as(sql`
   SELECT
     se.id                 AS "eventId",
+    se."doctorId",
     se."eventDate",
     se."startTime",
     se."endTime",

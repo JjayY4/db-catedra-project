@@ -9,8 +9,9 @@ import { ClinicalConsultations }  from './clinical-consultations.schema'
 import { WhatsAppMessages }       from './whatsapp-messages.schema'
 
 export const usersRelations = relations(Users, ({ many }) => ({
-  patients:      many(Patients),
-  auditedEvents: many(ScheduleEvents),
+  patients:       many(Patients),
+  doctorEvents:   many(ScheduleEvents, { relationName: 'doctorEvents' }),
+  auditedEvents:  many(ScheduleEvents, { relationName: 'auditedEvents' }),
 }))
 
 export const medicalInsurancesRelations = relations(MedicalInsurances, ({ many }) => ({
@@ -30,7 +31,8 @@ export const medicalRecordsRelations = relations(MedicalRecords, ({ one, many })
 }))
 
 export const scheduleEventsRelations = relations(ScheduleEvents, ({ one }) => ({
-  auditUser:   one(Users, { fields: [ScheduleEvents.auditUserId], references: [Users.id] }),
+  doctor:      one(Users, { fields: [ScheduleEvents.doctorId],    references: [Users.id], relationName: 'doctorEvents' }),
+  auditUser:   one(Users, { fields: [ScheduleEvents.auditUserId], references: [Users.id], relationName: 'auditedEvents' }),
   appointment: one(MedicalAppointments),
 }))
 

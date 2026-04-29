@@ -1,57 +1,103 @@
-import { api } from '@/shared/api/client'
+import { createServerApi } from '@/shared/api/server'
 import {
   CalendarioDisponibilidadWidget,
   parseWeekParam,
 } from '@/widgets/calendario-disponibilidad'
-import type { AvailableSlot } from '@/entities/schedule-event'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DoctorPicker } from '@/features/doctor-picker'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 
 interface DisponibilidadPageProps {
-  week?: string
+  doctorId?: string
+  week?:     string
 }
 
-export async function DisponibilidadPage({ week }: DisponibilidadPageProps) {
-  const range = parseWeekParam(week)
+export async function DisponibilidadPage({ doctorId, week }: DisponibilidadPageProps) {
+  const api = await createServerApi()
+  const { data: doctors, error: doctorsError } = await api.users.doctors.get()
 
-  const { data, error } = await api['schedule-events'].get({
-    query: { date_from: range.dateFrom, date_to: range.dateTo },
-  })
-
-  if (error) {
+  if (doctorsError || !doctors) {
     return (
-      <Card className="w-full max-w-5xl">
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Disponibilidad</CardTitle>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive" className="text-sm">
-            No se pudo cargar la disponibilidad. Intenta de nuevo más tarde.
+            No se pudo cargar la lista de médicos. Intenta de nuevo más tarde.
           </Alert>
         </CardContent>
       </Card>
     )
   }
 
-  const slots: AvailableSlot[] = (data ?? []).map((slot) => ({
-    id:        slot.id,
-    eventDate: slot.eventDate,
-    startTime: slot.startTime,
-    endTime:   slot.endTime,
-  }))
+  const selectedDoctor = doctorId ? doctors.find((d) => d.id === doctorId) : undefined
+
+  if (!selectedDoctor) {
+    return (
+      <div className="space-y-6">
+        <header>
+          <p className="text-xs font-semibold uppercase tracking-widest text-primary">Pacientes</p>
+          <h1>Selecciona un médico</h1>
+          <p className="text-muted-foreground mt-1">
+            Elige al profesional con quien deseas reservar tu cita.
+          </p>
+        </header>
+        <DoctorPicker
+          doctors={doctors}
+          baseHref="/disponibilidad"
+          extraQuery={{ week }}
+        />
+      </div>
+    )
+  }
+
+  const range = parseWeekParam(week)
+  const { data: slots, error: slotsError } = await api['schedule-events'].get({
+    query: {
+      doctor_id: selectedDoctor.id,
+      date_from: range.dateFrom,
+      date_to:   range.dateTo,
+    },
+  })
 
   return (
-    <Card className="w-full max-w-5xl">
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold">Horarios disponibles</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <CalendarioDisponibilidadWidget
-          slots={slots}
-          currentWeek={range.iso}
-          days={range.days}
-        />
-      </CardContent>
-    </Card>
+    <div className="space-y-6">
+      <header>
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+          Disponibilidad de {selectedDoctor.name}
+        </p>
+        <h1>Horarios disponibles</h1>
+        <CardDescription>
+          Cambia de médico abajo para ver otra agenda.
+        </CardDescription>
+      </header>
+
+      <DoctorPicker
+        doctors={doctors}
+        baseHref="/disponibilidad"
+        currentId={selectedDoctor.id}
+        extraQuery={{ week }}
+      />
+
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold">Semana {range.iso}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {slotsError ? (
+            <Alert variant="destructive" className="text-sm">
+              No se pudo cargar la disponibilidad. Intenta de nuevo más tarde.
+            </Alert>
+          ) : (
+            <CalendarioDisponibilidadWidget
+              slots={slots}
+              currentWeek={range.iso}
+              days={range.days}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
   )
 }

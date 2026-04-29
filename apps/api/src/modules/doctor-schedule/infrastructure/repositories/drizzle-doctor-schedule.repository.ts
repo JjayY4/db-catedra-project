@@ -1,5 +1,5 @@
 import { injectable } from 'inversify'
-import { sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { ScheduleEvents } from '@project/db/src/schema/schedule-events.schema'
 import { IDoctorScheduleRepository } from '../../domain/interfaces/doctor-schedule.repository'
@@ -9,6 +9,7 @@ import { slotKey } from '../../application/services/calculate-slots'
 @injectable()
 export class DrizzleDoctorScheduleRepository extends IDoctorScheduleRepository {
   findOverlappingKeys = async (
+    doctorId: string,
     candidates: ISlotCandidate[],
     tx: TxClient,
   ): Promise<Set<string>> => {
@@ -29,7 +30,12 @@ export class DrizzleDoctorScheduleRepository extends IDoctorScheduleRepository {
           endTime:   ScheduleEvents.endTime,
         })
         .from(ScheduleEvents)
-        .where(sql`${ScheduleEvents.eventDate} = ${eventDate}`)
+        .where(
+          and(
+            eq(ScheduleEvents.doctorId, doctorId),
+            sql`${ScheduleEvents.eventDate} = ${eventDate}`,
+          ),
+        )
 
       if (rows.length === 0) continue
 
@@ -47,6 +53,7 @@ export class DrizzleDoctorScheduleRepository extends IDoctorScheduleRepository {
   }
 
   bulkInsert = async (
+    doctorId: string,
     candidates: ISlotCandidate[],
     auditUserId: string,
     tx: TxClient,
@@ -54,6 +61,7 @@ export class DrizzleDoctorScheduleRepository extends IDoctorScheduleRepository {
     if (candidates.length === 0) return
     await tx.insert(ScheduleEvents).values(
       candidates.map((c) => ({
+        doctorId,
         eventDate:          c.eventDate,
         startTime:          c.startTime,
         endTime:            c.endTime,
