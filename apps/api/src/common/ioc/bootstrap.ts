@@ -5,6 +5,7 @@ import { HealthModule } from '~/modules/health/health.module'
 // <MODULES_IMPORTS_START>
 import { PatientsModule } from '~/modules/patients/patients.module'
 import { ScheduleEventsModule } from '~/modules/schedule-events/schedule-events.module'
+import { AppointmentsModule } from '~/modules/appointments/appointments.module'
 // <MODULES_IMPORTS_END>
 
 const kernel = ApplicationKernel.getInstance([
@@ -13,6 +14,7 @@ const kernel = ApplicationKernel.getInstance([
   // <MODULES_REGISTRATION_START>
   new PatientsModule(),
   new ScheduleEventsModule(),
+  new AppointmentsModule(),
   // <MODULES_REGISTRATION_END>
 ])
 
