@@ -5,7 +5,7 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
 
 ---
 
-## Task 2 — Entidad `appointment` (frontend)
+## Task 2 — Entidad `appointment` (frontend) ✅
 **Skill:** `/tech-drizzle` (tipos inferidos), `/frontend-architecture`
 
 1. Crear `apps/web/src/entities/appointment/model/types.ts` con los tipos `Appointment`, `AppointmentStatus`, `ClinicalData` y la unión `AppointmentWithClinical`.
@@ -15,7 +15,7 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
 
 ---
 
-## Task 3 — Use case `GetMyAppointments` (API)
+## Task 3 — Use case `GetMyAppointments` (API) ✅
 **Skill:** `/tech-drizzle`, `/backend-architecture`
 
 1. Crear `apps/api/src/modules/appointments/application/dtos/outputs/my-appointments.output.ts`:
@@ -33,7 +33,7 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
 
 ---
 
-## Task 4 — Repositorio: método `findByPatientDui`
+## Task 4 — Repositorio: método `findByPatientDui` ✅
 **Skill:** `/tech-drizzle`, `/backend-architecture`
 
 1. Agregar `findByPatientDui(patientDui: string, pagination: PaginationInput): Promise<AppointmentWithEvent[]>` a la interfaz abstracta del repositorio.
@@ -45,7 +45,7 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
 
 ---
 
-## Task 5 — Ruta `GET /appointments/my`
+## Task 5 — Ruta `GET /appointments/my` ✅
 **Skill:** `/tech-elysia`, `/backend-architecture`
 
 1. Agregar ruta autenticada en el plugin de rutas de `appointments`:
@@ -58,7 +58,7 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
 
 ---
 
-## Task 6 — Widget `AppointmentListWidget`
+## Task 6 — Widget `AppointmentListWidget` ✅
 **Skill:** `/frontend-architecture`, `/next-best-practices`
 
 1. Crear `apps/web/src/widgets/appointment-list/ui/AppointmentListWidget.tsx` como RSC:
@@ -70,7 +70,7 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
 
 ---
 
-## Task 7 — View `MisCitasPage`
+## Task 7 — View `MisCitasPage` ✅
 **Skill:** `/next-best-practices`, `/frontend-design`
 
 1. Crear `apps/web/src/views/mis-citas/ui/MisCitasPage.tsx` como RSC async:
@@ -82,7 +82,7 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
 
 ---
 
-## Task 8 — Thin page
+## Task 8 — Thin page ✅
 **Skill:** `/next-best-practices`
 
 1. Crear `apps/web/src/app/(patient)/mis-citas/page.tsx`:
@@ -93,3 +93,5 @@ Archivos de spec, shape, standards, references y sub-specs creados en `agent-os/
    }
    ```
 2. Verificar que la ruta `(patient)` tenga layout con guard de autenticación para rol `paciente`.
+
+> Implementación completada: 2026-04-28

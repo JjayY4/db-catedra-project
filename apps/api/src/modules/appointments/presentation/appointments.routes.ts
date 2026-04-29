@@ -1,8 +1,11 @@
+import { t } from 'elysia'
 import { createRouter } from '~/common/ioc/elysia-base'
 import { betterAuthPlugin } from '~/auth-plugin'
 import { BookAppointmentUseCase } from '../application/usecases/book-appointment.usecase'
+import { GetMyAppointmentsUseCase } from '../application/usecases/get-my-appointments.usecase'
 import { BookAppointmentInputSchema } from '../application/dtos/inputs/book-appointment.input'
 import { AppointmentOutputSchema } from '../application/dtos/outputs/appointment.output'
+import { MyAppointmentsOutputSchema } from '../application/dtos/outputs/my-appointments.output'
 
 export const appointmentsRoutes = createRouter({ prefix: '/appointments' })
   .use(betterAuthPlugin)
@@ -13,6 +16,23 @@ export const appointmentsRoutes = createRouter({ prefix: '/appointments' })
     {
       body:     BookAppointmentInputSchema,
       response: AppointmentOutputSchema,
+      auth:     true,
+    },
+  )
+  .get(
+    '/my',
+    ({ container, user, query }) =>
+      container.get(GetMyAppointmentsUseCase).execute({
+        userId:   user.id,
+        page:     Number(query.page ?? 1) || 1,
+        pageSize: Number(query.pageSize ?? 10) || 10,
+      }),
+    {
+      query: t.Object({
+        page:     t.Optional(t.String()),
+        pageSize: t.Optional(t.String()),
+      }),
+      response: MyAppointmentsOutputSchema,
       auth:     true,
     },
   )
