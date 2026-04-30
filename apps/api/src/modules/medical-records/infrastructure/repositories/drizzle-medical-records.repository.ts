@@ -1,23 +1,20 @@
-import { inject, injectable } from "inversify";
-import { eq } from "drizzle-orm";
-import { NodePgDatabase } from "drizzle-orm/node-postgres"; 
-import { ClinicalConsultations } from "@project/db/src/schema/clinical-consultations.schema";
-import { IMedicalRecordsRepository } from "../../domain/interfaces/medical-records.repository";
+import { injectable } from 'inversify'
+import { eq, desc } from 'drizzle-orm'
+import type { TxClient } from '@project/db/src/client'
+import { ClinicalConsultations } from '@project/db/src/schema/clinical-consultations.schema'
+import { IMedicalRecordsRepository } from '../../domain/interfaces/medical-records.repository'
 
 @injectable()
-export class DrizzleMedicalRecordsRepository implements IMedicalRecordsRepository {
-  constructor(
-    @inject("DB") private readonly db: NodePgDatabase<any>
-) {}
-
-  async getConsultationsByRecordId(recordId: string) {
-    return await this.db
+export class DrizzleMedicalRecordsRepository extends IMedicalRecordsRepository {
+  getConsultationsByRecordId = async (recordId: string, tx: TxClient) => {
+    return await tx
       .select()
       .from(ClinicalConsultations)
-      .where(eq(ClinicalConsultations.recordId, recordId));
+      .where(eq(ClinicalConsultations.recordId, recordId))
+      .orderBy(desc(ClinicalConsultations.id));
   }
 
-  async createConsultation(data: any) {
-    await this.db.insert(ClinicalConsultations).values(data);
+  createConsultation = async (data: any, tx: TxClient) => {
+    await tx.insert(ClinicalConsultations).values(data);
   }
 }
