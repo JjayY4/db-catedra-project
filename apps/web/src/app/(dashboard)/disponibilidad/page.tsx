@@ -1,5 +1,7 @@
 import { DisponibilidadPage } from '@/views/disponibilidad'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DisponibilidadRoute({
   searchParams,
 }: {
