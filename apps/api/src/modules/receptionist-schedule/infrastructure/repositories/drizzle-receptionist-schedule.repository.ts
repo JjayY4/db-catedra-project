@@ -1,5 +1,5 @@
 import { injectable } from 'inversify'
-import { and, asc, eq, gte, lt, ne } from 'drizzle-orm'
+import { and, asc, eq, gte, lte, ne } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { ScheduleEvents } from '@project/db/src/schema/schedule-events.schema'
 import { MedicalAppointments } from '@project/db/src/schema/medical-appointments.schema'
@@ -59,10 +59,11 @@ export class DrizzleReceptionistScheduleRepository extends IReceptionistSchedule
           eq(ScheduleEvents.eventType, 'appointment'),
           eq(ScheduleEvents.availabilityStatus, 'available'),
           gte(ScheduleEvents.eventDate, dateFrom),
-          lt(ScheduleEvents.eventDate, dateTo),
+          lte(ScheduleEvents.eventDate, dateTo), // ✅ FIX aplicado
         ),
       )
       .orderBy(asc(ScheduleEvents.eventDate), asc(ScheduleEvents.startTime))
+
     return rows.map(toEntity)
   }
 
@@ -93,6 +94,7 @@ export class DrizzleReceptionistScheduleRepository extends IReceptionistSchedule
 
     const row = rows[0]
     if (!row) return null
+
     return {
       appointmentId: row.appointmentId,
       patientName:   `${row.firstName} ${row.lastName}`.trim(),
@@ -124,6 +126,7 @@ export class DrizzleReceptionistScheduleRepository extends IReceptionistSchedule
 
     const row = rows[0]
     if (!row) return null
+
     return {
       appointmentId: row.appointmentId,
       patientName:   `${row.firstName} ${row.lastName}`.trim(),
@@ -138,6 +141,7 @@ export class DrizzleReceptionistScheduleRepository extends IReceptionistSchedule
     tx: TxClient,
   ): Promise<IScheduleEvent[]> => {
     if (slots.length === 0) return []
+
     const values = slots.map((slot) => ({
       doctorId,
       eventDate:          slot.date,
@@ -147,7 +151,9 @@ export class DrizzleReceptionistScheduleRepository extends IReceptionistSchedule
       availabilityStatus: blockedStatusFor(slot.eventType),
       auditUserId,
     }))
+
     const inserted = await tx.insert(ScheduleEvents).values(values).returning()
+
     return inserted.map(toEntity)
   }
 

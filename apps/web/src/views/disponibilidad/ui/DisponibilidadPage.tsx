@@ -54,12 +54,13 @@ export async function DisponibilidadPage({ doctorId, week }: DisponibilidadPageP
 
   const range = parseWeekParam(week)
   const { data: slots, error: slotsError } = await api['schedule-events'].get({
-    query: {
-      doctor_id: selectedDoctor.id,
-      date_from: range.dateFrom,
-      date_to:   range.dateTo,
-    },
-  })
+  query: {
+    doctor_id: selectedDoctor.id,
+    date_from: range.dateFrom,
+    date_to:   range.dateTo,
+  },
+  fetch: { cache: 'no-store' },
+})
 
   return (
     <div className="space-y-6">

@@ -12,7 +12,7 @@ export async function ReservarCitaPage({ eventId }: ReservarCitaPageProps) {
   await requireAuth()
 
   const api = await createServerApi()
-  const { data: slot, error } = await api['schedule-events']({ id: eventId }).get()
+  const { data: slot, error } = await (api as any)['schedule-events'][eventId].get()
   if (error || !slot) {
     notFound()
   }
