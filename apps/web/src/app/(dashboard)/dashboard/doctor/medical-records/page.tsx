@@ -54,10 +54,9 @@ export default async function MedicalRecordsListPage() {
               {patient.recordId ? (
                 <Link
                   href={`/dashboard/doctor/medical-records/${patient.recordId}/history`}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/80 transition-colors"
                 >
-                  <FileText className="h-4 w-4" />
-                  Ver Historial Clínico
+                  Ver historial médico
                 </Link>
               ) : (
                 <div className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-muted px-4 py-2 text-sm font-medium text-muted-foreground cursor-not-allowed">
