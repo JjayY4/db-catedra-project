@@ -10,8 +10,7 @@
   "scripts": {
     "db:generate": "bun --env-file=../../.env node_modules/drizzle-kit/bin.cjs generate",
     "db:migrate": "bun --env-file=../../.env src/migrate.ts",
-    "db:push": "bun --env-file=../../.env node_modules/drizzle-kit/bin.cjs push",
-    "db:seed": "bun --env-file=../../.env src/seed.ts"
+    "db:push": "bun --env-file=../../.env node_modules/drizzle-kit/bin.cjs push"
   },
   "dependencies": {
     "drizzle-orm": "^0.44.2",

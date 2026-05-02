@@ -60,22 +60,77 @@ pnpm db:generate
 # 6. Apply migrations + triggers
 pnpm db:migrate
 
-# 7. Seed Better Auth users (admin / doctor / patient / receptionist)
-pnpm --filter @project/api seed
+# 7. Seed every schema (25 rows per table — see Seed below)
+pnpm db:seed
 
 # 8. Start API (http://localhost:3000) + Web (http://localhost:3001)
 pnpm dev
 ```
 
+### Seed
+
+`pnpm db:seed` runs `apps/api/src/seeds/index.ts`, which orchestrates one seeder per schema and produces exactly **25 rows per table** across the 8 entity tables (`MedicalRecords` and `WhatsAppMessages` are populated by triggers, the rest via explicit inserts).
+
+```
+apps/api/src/seeds/
+├── index.ts                          # orchestrator (Better Auth phase + tx phase)
+├── _data.ts                          # shared pools (names, insurers, diagnoses, DUIs)
+├── _helpers.ts                       # date/time + SEED_PASSWORD + ROW_COUNT
+├── medical-insurances.seed.ts
+├── users.seed.ts                     # uses Better Auth signUpEmail (real scrypt hash)
+├── patients.seed.ts                  # → triggers 25 MedicalRecords
+├── schedule-events.seed.ts
+├── medical-appointments.seed.ts      # → triggers 25 WhatsAppMessages, marks events 'busy'
+└── clinical-consultations.seed.ts
+```
+
+The seed aborts if `Users` already has rows — wipe first with `docker compose down -v && docker compose up -d && pnpm db:migrate`.
+
 ### Test credentials
 
-Seeded via `apps/api/src/seed-auth.ts`. Password for all accounts: `password123`.
+All seeded accounts share the password **`password123`**. Emails are derived from each user's name as `firstname.lastname@clinic.com` (accents stripped, lowercased) — see `apps/api/src/seeds/_helpers.ts` (`slug`) and `apps/api/src/seeds/users.seed.ts`.
 
-| Role | Email |
+#### Patients (12)
+
+| Name | Email |
 |---|---|
-| Admin | `admin@clinic.com` |
-| Doctor | `dra.garcia@clinic.com`, `dr.martinez@clinic.com` |
-| Receptionist | `recep1@clinic.com`, `recep2@clinic.com` |
+| María Rodríguez | `maria.rodriguez@clinic.com` |
+| José Hernández | `jose.hernandez@clinic.com` |
+| Ana Pérez | `ana.perez@clinic.com` |
+| Luis González | `luis.gonzalez@clinic.com` |
+| Carmen Sánchez | `carmen.sanchez@clinic.com` |
+| Carlos Ramírez | `carlos.ramirez@clinic.com` |
+| Sofía Torres | `sofia.torres@clinic.com` |
+| Miguel Flores | `miguel.flores@clinic.com` |
+| Laura Rivera | `laura.rivera@clinic.com` |
+| Diego Gómez | `diego.gomez@clinic.com` |
+| Patricia Díaz | `patricia.diaz@clinic.com` |
+| Roberto Cruz | `roberto.cruz@clinic.com` |
+
+#### Doctors (8)
+
+| Name | Email |
+|---|---|
+| Dr. Lucía Reyes | `lucia.reyes@clinic.com` |
+| Dr. Andrés Morales | `andres.morales@clinic.com` |
+| Dr. Elena Ortiz | `elena.ortiz@clinic.com` |
+| Dr. Fernando Gutiérrez | `fernando.gutierrez@clinic.com` |
+| Dr. Gabriela Chávez | `gabriela.chavez@clinic.com` |
+| Dr. Ricardo Ruiz | `ricardo.ruiz@clinic.com` |
+| Dr. Isabel Álvarez | `isabel.alvarez@clinic.com` |
+| Dr. Javier Mendoza | `javier.mendoza@clinic.com` |
+
+#### Receptionists (5)
+
+| Name | Email |
+|---|---|
+| Recep. Beatriz Vargas | `beatriz.vargas@clinic.com` |
+| Recep. Pablo Castro | `pablo.castro@clinic.com` |
+| Recep. Verónica García | `veronica.garcia@clinic.com` |
+| Recep. Hugo Martínez | `hugo.martinez@clinic.com` |
+| Recep. Adriana López | `adriana.lopez@clinic.com` |
+
+To regenerate with different names or password: edit `_data.ts` (name pools / role distribution), `users.seed.ts` (email pattern) or `_helpers.ts` (`SEED_PASSWORD`), then `docker compose down -v && docker compose up -d && pnpm db:migrate && pnpm db:seed`.
 
 New accounts registered via `/register` default to `patient`.
 
@@ -102,7 +157,7 @@ pnpm dev                        # turbo dev — runs every app's dev task
 pnpm dev:api                    # only the API (http://localhost:3000)
 pnpm dev:web                    # only the web app (http://localhost:3001)
 pnpm build                      # turbo build
-pnpm --filter @project/api seed # populate Better Auth users (admin/doctor/receptionist)
+pnpm db:seed                    # seed all 8 entity tables (25 rows each)
 ```
 
 ### Database
@@ -110,6 +165,7 @@ pnpm --filter @project/api seed # populate Better Auth users (admin/doctor/recep
 ```bash
 pnpm db:generate    # drizzle-kit generate — emits SQL migrations
 pnpm db:migrate     # apply migrations + run applyTriggers()
+pnpm db:seed        # run apps/api/src/seeds/index.ts (25 rows per table)
 ```
 
 `db:migrate` runs `packages/db/src/migrate.ts`, which:
@@ -236,4 +292,4 @@ docker compose exec postgres psql -U postgres -d db_catedra \
 | Stored procedures | `packages/db/src/sql/03_stored_procedures.sql` |
 | Subqueries | `packages/db/src/sql/04_subqueries.sql` |
 | Roles | `packages/db/src/sql/05_roles.sql` |
-| Seed (25+ rows/table) | `packages/db/src/sql/06_seed.sql` |
+| Seed (25 rows/table) | `apps/api/src/seeds/` (one file per schema; orchestrated by `index.ts`) |

@@ -6,19 +6,13 @@ import { t } from 'elysia'
 export const medicalRecordsRoutes = createRouter({ prefix: '/medical-records' })
   .use(betterAuthPlugin)
   .get(
-    '/:recordId/history',
+    '/:id/history',
     async ({ container, params }) => {
-      const history = await container.get(GetMedicalHistoryUseCase).execute(params.recordId);
-      
-      return {
-        success: true,
-        data: history
-      };
+      const history = await container.get(GetMedicalHistoryUseCase).execute(params.id)
+      return { success: true, data: history }
     },
     {
       roles: ['doctor', 'receptionist'],
-      params: t.Object({
-        recordId: t.String()
-      }),
-    }
+      params: t.Object({ id: t.String() }),
+    },
   )

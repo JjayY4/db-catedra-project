@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "bun --watch --env-file=../../.env src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
-    "seed": "bun --env-file=../../.env src/seed-auth.ts"
+    "db:seed": "bun --env-file=../../.env src/seeds/index.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
