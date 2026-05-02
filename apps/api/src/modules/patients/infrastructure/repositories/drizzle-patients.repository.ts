@@ -6,7 +6,9 @@ import { IPatientsRepository } from '../../domain/interfaces/patients.repository
 import type { IPatient } from '../../domain/entities/patient.entity'
 import type { CompleteProfileInput } from '../../application/dtos/inputs/complete-profile.input'
 
-type PatientRow = typeof Patients.$inferSelect
+type PatientRow = typeof Patients.$inferSelect & {
+  medicalRecord?: { id: string } | null
+}
 
 function toEntity(row: PatientRow): IPatient {
   return {
@@ -17,6 +19,7 @@ function toEntity(row: PatientRow): IPatient {
     whatsappPhone: row.whatsappPhone,
     birthDate:     row.birthDate,
     insuranceId:   row.insuranceId,
+    recordId:      row.medicalRecord?.id ?? null,
   }
 }
 
@@ -30,6 +33,15 @@ export class DrizzlePatientsRepository extends IPatientsRepository {
   findByUserId = async (userId: string, tx: TxClient): Promise<IPatient | null> => {
     const row = await tx.query.Patients.findFirst({ where: eq(Patients.userId, userId) })
     return row ? toEntity(row) : null
+  }
+
+  findAll = async (tx: TxClient): Promise<IPatient[]> => {
+    const rows = await tx.query.Patients.findMany({
+      with: {
+        medicalRecord: true
+      }
+    })
+    return rows.map((row) => toEntity(row))
   }
 
   create = async (input: CompleteProfileInput, userId: string, tx: TxClient): Promise<IPatient> => {

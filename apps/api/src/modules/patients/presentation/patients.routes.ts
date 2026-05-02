@@ -7,6 +7,7 @@ import { ListInsurancesUseCase } from '../application/usecases/list-insurances.u
 import { CompleteProfileInputSchema } from '../application/dtos/inputs/complete-profile.input'
 import { PatientOutputSchema } from '../application/dtos/outputs/patient.output'
 import { InsuranceOutputSchema } from '../application/dtos/outputs/insurance.output'
+import { ListPatientsUseCase } from '../application/usecases/list-patients.usecase'
 
 export const patientsRoutes = createRouter({ prefix: '/patients' })
   .get(
@@ -15,6 +16,14 @@ export const patientsRoutes = createRouter({ prefix: '/patients' })
     { response: t.Array(InsuranceOutputSchema) },
   )
   .use(betterAuthPlugin)
+  .get(
+    '/',
+    ({ container }) => container.get(ListPatientsUseCase).execute(),
+    { 
+      response: t.Array(PatientOutputSchema), 
+      auth: true 
+    }
+  )
   .get(
     '/me',
     ({ container, user }) => container.get(GetMyPatientUseCase).execute({ userId: user.id }),

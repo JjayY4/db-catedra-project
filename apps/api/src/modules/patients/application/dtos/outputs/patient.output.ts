@@ -8,6 +8,7 @@ export const PatientOutputSchema = t.Object({
   whatsappPhone: t.String(),
   birthDate:     t.String(),
   insuranceId:   t.Nullable(t.String()),
+  recordId:      t.Nullable(t.String()),
 })
 
 export type PatientOutput = Static<typeof PatientOutputSchema>

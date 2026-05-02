@@ -7,4 +7,5 @@ export abstract class IPatientsRepository {
   abstract findByUserId(userId: string, tx: TxClient): Promise<IPatient | null>
   abstract create(input: CompleteProfileInput, userId: string, tx: TxClient): Promise<IPatient>
   abstract linkUser(dui: string, userId: string, tx: TxClient): Promise<IPatient>
+  abstract findAll(tx: TxClient): Promise<IPatient[]>
 }

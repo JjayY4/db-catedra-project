@@ -5,6 +5,7 @@ import { DrizzlePatientsRepository } from './infrastructure/repositories/drizzle
 import { CompleteProfileUseCase } from './application/usecases/complete-profile.usecase'
 import { GetMyPatientUseCase } from './application/usecases/get-my-patient.usecase'
 import { ListInsurancesUseCase } from './application/usecases/list-insurances.usecase'
+import { ListPatientsUseCase } from './application/usecases/list-patients.usecase'
 
 export class PatientsModule implements AppModule {
   load(container: Container): void {
@@ -12,5 +13,6 @@ export class PatientsModule implements AppModule {
     container.bind(CompleteProfileUseCase).toSelf().inRequestScope()
     container.bind(GetMyPatientUseCase).toSelf().inRequestScope()
     container.bind(ListInsurancesUseCase).toSelf().inRequestScope()
+    container.bind(ListPatientsUseCase).toSelf().inRequestScope()
   }
 }
