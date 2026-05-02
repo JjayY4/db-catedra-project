@@ -24,6 +24,7 @@ const NAV_LINKS: Record<string, NavLink[]> = {
     { href: '/dashboard/doctor/agenda',   label: 'Agenda de hoy',       icon: CalendarDays },
     { href: '/dashboard/doctor/horarios', label: 'Configurar horarios', icon: CalendarClock },
     { href: '/dashboard/doctor/usuarios', label: 'Usuarios',            icon: UserCog },
+    { href: '/dashboard/doctor/medical-records', label: 'Historial de Pacientes',    icon: Users },
   ],
   patient: [
     { href: '/dashboard/patient', label: 'Dashboard',          icon: LayoutDashboard },
