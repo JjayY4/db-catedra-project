@@ -3,5 +3,5 @@ export interface IAppointment {
   eventId:       string
   patientDui:    string
   bookingReason: string
-  bookedAt:      Date
+  bookedAt:      string
 }

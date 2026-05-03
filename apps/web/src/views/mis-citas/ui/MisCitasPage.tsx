@@ -32,5 +32,5 @@ export async function MisCitasPage({ page: pageParam }: MisCitasPageProps) {
     )
   }
 
-  return <AppointmentListWidgetCard upcoming={data.upcoming} past={data.past} />
+  return <AppointmentListWidgetCard upcoming={data?.upcoming ?? []} past={data?.past ?? []} />
 }

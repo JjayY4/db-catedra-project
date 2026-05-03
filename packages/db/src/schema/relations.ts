@@ -6,7 +6,6 @@ import { MedicalRecords }         from './medical-records.schema'
 import { ScheduleEvents }         from './schedule-events.schema'
 import { MedicalAppointments }    from './medical-appointments.schema'
 import { ClinicalConsultations }  from './clinical-consultations.schema'
-import { WhatsAppMessages }       from './whatsapp-messages.schema'
 
 export const usersRelations = relations(Users, ({ many }) => ({
   patients:       many(Patients),
@@ -36,18 +35,13 @@ export const scheduleEventsRelations = relations(ScheduleEvents, ({ one }) => ({
   appointment: one(MedicalAppointments),
 }))
 
-export const medicalAppointmentsRelations = relations(MedicalAppointments, ({ one, many }) => ({
-  event:            one(ScheduleEvents, { fields: [MedicalAppointments.eventId],    references: [ScheduleEvents.id] }),
-  patient:          one(Patients,       { fields: [MedicalAppointments.patientDui], references: [Patients.dui] }),
-  consultation:     one(ClinicalConsultations),
-  whatsappMessages: many(WhatsAppMessages),
+export const medicalAppointmentsRelations = relations(MedicalAppointments, ({ one }) => ({
+  event:        one(ScheduleEvents, { fields: [MedicalAppointments.eventId],    references: [ScheduleEvents.id] }),
+  patient:      one(Patients,       { fields: [MedicalAppointments.patientDui], references: [Patients.dui] }),
+  consultation: one(ClinicalConsultations),
 }))
 
 export const clinicalConsultationsRelations = relations(ClinicalConsultations, ({ one }) => ({
   record:      one(MedicalRecords,      { fields: [ClinicalConsultations.recordId],      references: [MedicalRecords.id] }),
   appointment: one(MedicalAppointments, { fields: [ClinicalConsultations.appointmentId], references: [MedicalAppointments.id] }),
-}))
-
-export const whatsappMessagesRelations = relations(WhatsAppMessages, ({ one }) => ({
-  appointment: one(MedicalAppointments, { fields: [WhatsAppMessages.appointmentId], references: [MedicalAppointments.id] }),
 }))

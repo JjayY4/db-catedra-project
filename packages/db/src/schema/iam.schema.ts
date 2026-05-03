@@ -9,16 +9,16 @@ export const Users = pgTable('Users', {
   image:         text('image'),
   role:          userRoleEnum('role').notNull().default('patient'),
   accountStatus: accountStatusEnum('accountStatus').notNull().default('active'),
-  createdAt:     timestamp('createdAt').notNull().defaultNow(),
-  updatedAt:     timestamp('updatedAt').notNull().defaultNow(),
+  createdAt:     timestamp('createdAt', { mode: 'string' }).notNull().defaultNow(),
+  updatedAt:     timestamp('updatedAt', { mode: 'string' }).notNull().defaultNow(),
 })
 
 export const Sessions = pgTable('Sessions', {
   id:        text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  expiresAt: timestamp('expiresAt').notNull(),
+  expiresAt: timestamp('expiresAt', { mode: 'string' }).notNull(),
   token:     text('token').notNull().unique(),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt').notNull().defaultNow(),
+  createdAt: timestamp('createdAt', { mode: 'string' }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { mode: 'string' }).notNull().defaultNow(),
   ipAddress: text('ipAddress'),
   userAgent: text('userAgent'),
   userId:    uuid('userId').notNull().references(() => Users.id, { onDelete: 'cascade' }),
@@ -34,12 +34,12 @@ export const Accounts = pgTable('Accounts', {
   accessToken:           text('accessToken'),
   refreshToken:          text('refreshToken'),
   idToken:               text('idToken'),
-  accessTokenExpiresAt:  timestamp('accessTokenExpiresAt'),
-  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
+  accessTokenExpiresAt:  timestamp('accessTokenExpiresAt', { mode: 'string' }),
+  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt', { mode: 'string' }),
   scope:                 text('scope'),
   password:              text('password'),
-  createdAt:             timestamp('createdAt').notNull().defaultNow(),
-  updatedAt:             timestamp('updatedAt').notNull().defaultNow(),
+  createdAt:             timestamp('createdAt', { mode: 'string' }).notNull().defaultNow(),
+  updatedAt:             timestamp('updatedAt', { mode: 'string' }).notNull().defaultNow(),
 }, (t) => [
   index('accounts_user_id_idx').on(t.userId),
 ])
@@ -48,9 +48,9 @@ export const Verifications = pgTable('Verifications', {
   id:         text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   identifier: text('identifier').notNull(),
   value:      text('value').notNull(),
-  expiresAt:  timestamp('expiresAt').notNull(),
-  createdAt:  timestamp('createdAt'),
-  updatedAt:  timestamp('updatedAt'),
+  expiresAt:  timestamp('expiresAt', { mode: 'string' }).notNull(),
+  createdAt:  timestamp('createdAt', { mode: 'string' }),
+  updatedAt:  timestamp('updatedAt', { mode: 'string' }),
 }, (t) => [
   index('verifications_identifier_idx').on(t.identifier),
 ])

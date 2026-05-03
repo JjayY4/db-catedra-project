@@ -21,6 +21,7 @@ type ViewRow = {
 
 function mapStatus(value: string | null): AgendaStatus {
   switch (value) {
+    case 'pending': return 'pendiente'
     case 'busy': return 'reservado'
     case 'completed': return 'completado'
     case 'cancelled': return 'cancelado'
@@ -39,14 +40,15 @@ function toEntity(row: ViewRow, diagnoses: Map<string, string>): IAgendaItem {
   const diagnosis = row.appointmentId ? diagnoses.get(row.appointmentId) ?? null : null
 
   return {
-    slotId: row.eventId ?? '',
-    startTime: row.startTime ?? '',
-    endTime: row.endTime ?? '',
-    patientId: row.patientDui ?? null,
-    patientName: buildPatientName(row),
+    slotId:        row.eventId ?? '',
+    startTime:     row.startTime ?? '',
+    endTime:       row.endTime ?? '',
+    patientId:     row.patientDui ?? null,
+    patientName:   buildPatientName(row),
     bookingReason: row.bookingReason ?? null,
     status,
-    mainDiagnosis: status === 'completado' ? diagnosis : null,
+    mainDiagnosis:  status === 'completado' ? diagnosis : null,
+    appointmentId:  row.appointmentId ?? null,
   }
 }
 

@@ -1,8 +1,8 @@
+import Link from 'next/link'
 import { createServerApi } from '@/shared/api/server'
-import { AgendaTableWidget, DateNav } from '@/widgets/agenda-table'
-import { BloquearHorariosDialog } from '@/features/block-schedule'
+import { AgendaSlotListWidget } from '@/widgets/agenda-slot-list'
 import { DoctorPicker } from '@/features/doctor-picker'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DayNav } from '@/shared/ui'
 import { Alert } from '@/components/ui/alert'
 
 interface AgendaSecretariaPageProps {
@@ -50,44 +50,37 @@ export async function AgendaSecretariaPage({ doctorId, fecha }: AgendaSecretaria
     query: { doctor_id: selectedDoctor.id, fecha },
   })
 
+  const items = Array.isArray(data) ? data : []
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-primary">Reception</p>
-          <h1>Agenda de {selectedDoctor.name}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Fecha: {fecha}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <DateNav fecha={fecha} doctorId={selectedDoctor.id} />
-          <BloquearHorariosDialog doctorId={selectedDoctor.id} />
-        </div>
+      <div>
+        <Link
+          href={`/agenda?fecha=${fecha}`}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-2"
+        >
+          ← Médicos
+        </Link>
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Reception</p>
+        <h1>Agenda de {selectedDoctor.name}</h1>
       </div>
 
-      <DoctorPicker
-        doctors={doctors}
-        baseHref="/agenda"
-        currentId={selectedDoctor.id}
-        extraQuery={{ fecha }}
+      <DayNav
+        fecha={fecha}
+        buildHref={(f) => `/agenda?doctor_id=${selectedDoctor.id}&fecha=${f}`}
+        subtitle={`${items.length} bloques en agenda`}
       />
 
       {error ? (
-        <Card>
-          <CardContent>
-            <Alert variant="destructive" className="text-sm">
-              No se pudo cargar la agenda. Intenta nuevamente más tarde.
-            </Alert>
-          </CardContent>
-        </Card>
+        <Alert variant="destructive" className="text-sm">
+          No se pudo cargar la agenda. Intenta nuevamente más tarde.
+        </Alert>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl font-semibold">Slots del día</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AgendaTableWidget items={data} fecha={fecha} />
-          </CardContent>
-        </Card>
+        <AgendaSlotListWidget
+          items={items}
+          doctorId={selectedDoctor.id}
+          fecha={fecha}
+        />
       )}
     </div>
   )

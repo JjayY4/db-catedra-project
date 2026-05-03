@@ -56,7 +56,8 @@ export function EditUserButton({ user }: EditUserButtonProps) {
 
   async function onSubmit(values: UpdateUserInput) {
     setServerError(null)
-    const { error } = await clientApi.users({ id: user.id }).patch(values)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (clientApi as any).users({ id: user.id }).patch(values)
     if (error) {
       const value = error.value
       const message =

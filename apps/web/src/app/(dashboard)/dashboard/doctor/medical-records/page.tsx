@@ -6,13 +6,11 @@ import { Users, FileText } from 'lucide-react'
 
 export default async function MedicalRecordsListPage() {
   const api = await createServerApi()
-  const { data: patients, error } = await api.patients.get({
-    query: {
-    doctor_id: "b9232877-843c-480e-b2c0-40c51be45d6e", 
-    date_from: "2026-05-01",            
-    date_to: "2026-05-31",              
-  }
+  const { data, error } = await api.patients.get({
+    query: {},
   })
+
+  const patients = data?.items
 
   if (error || !patients) {
     return (

@@ -7,5 +7,5 @@ export interface IUser {
   name: string
   role: UserRole
   accountStatus: AccountStatus
-  createdAt: Date
+  createdAt: string
 }

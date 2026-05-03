@@ -4,10 +4,16 @@ import { betterAuthPlugin } from '~/auth-plugin'
 import { CompleteProfileUseCase } from '../application/usecases/complete-profile.usecase'
 import { GetMyPatientUseCase } from '../application/usecases/get-my-patient.usecase'
 import { ListInsurancesUseCase } from '../application/usecases/list-insurances.usecase'
+import { CreateInsuranceUseCase } from '../application/usecases/create-insurance.usecase'
+import { UpdateInsuranceUseCase } from '../application/usecases/update-insurance.usecase'
+import { DeleteInsuranceUseCase } from '../application/usecases/delete-insurance.usecase'
 import { CompleteProfileInputSchema } from '../application/dtos/inputs/complete-profile.input'
-import { PatientOutputSchema } from '../application/dtos/outputs/patient.output'
+import { CreateInsuranceInputSchema, UpdateInsuranceInputSchema } from '../application/dtos/inputs/insurance.input'
+import { PatientOutputSchema, PaginatedPatientsOutputSchema } from '../application/dtos/outputs/patient.output'
 import { InsuranceOutputSchema } from '../application/dtos/outputs/insurance.output'
 import { ListPatientsUseCase } from '../application/usecases/list-patients.usecase'
+import { RegisterPatientUseCase } from '../application/usecases/register-patient.usecase'
+import { RegisterPatientInputSchema } from '../application/dtos/inputs/register-patient.input'
 
 export const patientsRoutes = createRouter({ prefix: '/patients' })
   .get(
@@ -16,13 +22,44 @@ export const patientsRoutes = createRouter({ prefix: '/patients' })
     { response: t.Array(InsuranceOutputSchema) },
   )
   .use(betterAuthPlugin)
+  .post(
+    '/insurances',
+    ({ container, body }) => container.get(CreateInsuranceUseCase).execute(body),
+    {
+      body:     CreateInsuranceInputSchema,
+      response: InsuranceOutputSchema,
+      roles:    ['doctor', 'receptionist'],
+      status:   201,
+    },
+  )
+  .patch(
+    '/insurances/:id',
+    ({ container, params, body }) =>
+      container.get(UpdateInsuranceUseCase).execute({ id: params.id, ...body }),
+    {
+      body:     UpdateInsuranceInputSchema,
+      response: InsuranceOutputSchema,
+      roles:    ['doctor', 'receptionist'],
+    },
+  )
+  .delete(
+    '/insurances/:id',
+    ({ container, params }) =>
+      container.get(DeleteInsuranceUseCase).execute({ id: params.id }),
+    { roles: ['doctor', 'receptionist'] },
+  )
   .get(
     '/',
-    ({ container }) => container.get(ListPatientsUseCase).execute(),
-    { 
-      response: t.Array(PatientOutputSchema), 
-      auth: true 
-    }
+    ({ container, query }) =>
+      container.get(ListPatientsUseCase).execute({
+        page:     Math.max(1, Number(query.page)     || 1),
+        pageSize: Math.min(100, Math.max(1, Number(query.pageSize) || 10)),
+      }),
+    {
+      query:    t.Object({ page: t.Optional(t.String()), pageSize: t.Optional(t.String()) }),
+      response: PaginatedPatientsOutputSchema,
+      auth:     true,
+    },
   )
   .get(
     '/me',
@@ -37,5 +74,16 @@ export const patientsRoutes = createRouter({ prefix: '/patients' })
       body:     CompleteProfileInputSchema,
       response: PatientOutputSchema,
       auth:     true,
+    },
+  )
+  .post(
+    '/register',
+    ({ container, body }) =>
+      container.get(RegisterPatientUseCase).execute(body),
+    {
+      body:     RegisterPatientInputSchema,
+      response: PatientOutputSchema,
+      roles:    ['receptionist', 'doctor'],
+      status:   201,
     },
   )

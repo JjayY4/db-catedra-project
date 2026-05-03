@@ -8,7 +8,7 @@ export const UserOutputSchema = t.Object({
   name:          t.String(),
   role:          t.Enum(UserRole),
   accountStatus: t.Enum(AccountStatus),
-  createdAt:     t.Date(),
+  createdAt:     t.String(),
 })
 
 export type UserOutput = Static<typeof UserOutputSchema>

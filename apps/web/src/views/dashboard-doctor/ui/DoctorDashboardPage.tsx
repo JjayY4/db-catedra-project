@@ -1,12 +1,33 @@
+import Link from 'next/link'
 import { CalendarDays, ClipboardList, Stethoscope } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { buttonVariants } from '@/components/ui/button'
+import { createServerApi } from '@/shared/api/server'
 import type { User } from '@/entities/user'
 
 interface DoctorDashboardPageProps {
   user: User
 }
 
-export function DoctorDashboardPage({ user }: DoctorDashboardPageProps) {
+export async function DoctorDashboardPage({ user }: DoctorDashboardPageProps) {
+  const today = new Date().toISOString().split('T')[0]
+
+  let totalCitas = 0
+  let reservadas = 0
+
+  try {
+    const api = await createServerApi()
+    const { data: agendaItems } = await api.doctor.agenda.get({
+      query: { fecha: today },
+    })
+    if (agendaItems) {
+      totalCitas = agendaItems.length
+      reservadas = agendaItems.filter((item) => item.patientId !== null).length
+    }
+  } catch {
+    // show 0 if API fails
+  }
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-1">
@@ -16,9 +37,18 @@ export function DoctorDashboardPage({ user }: DoctorDashboardPageProps) {
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard icon={CalendarDays} title="Today's Appointments" value="—" tone="primary" />
-        <StatCard icon={Stethoscope} title="My Patients" value="—" tone="secondary" />
-        <StatCard icon={ClipboardList} title="Pending Records" value="—" tone="warning" />
+        <StatCard icon={CalendarDays} title="Citas hoy" value={String(totalCitas)} tone="primary" />
+        <StatCard icon={Stethoscope} title="Reservadas" value={String(reservadas)} tone="secondary" />
+        <StatCard icon={ClipboardList} title="Disponibles" value={String(totalCitas - reservadas)} tone="warning" />
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Link href="/dashboard/doctor/agenda" className={buttonVariants()}>
+          Ver agenda
+        </Link>
+        <Link href="/dashboard/doctor/horarios" className={buttonVariants({ variant: 'outline' })}>
+          Configurar horarios
+        </Link>
       </div>
     </div>
   )

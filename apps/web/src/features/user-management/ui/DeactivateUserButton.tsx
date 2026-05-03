@@ -28,7 +28,8 @@ export function DeactivateUserButton({ userId, userName }: DeactivateUserButtonP
 
   async function handleDeactivate() {
     setError(null)
-    const { error: apiError } = await clientApi.users({ id: userId }).deactivate.post()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: apiError } = await (clientApi as any).users({ id: userId }).deactivate.post()
     if (apiError) {
       const value = apiError.value
       const message =

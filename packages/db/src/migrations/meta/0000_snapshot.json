@@ -1,5 +1,5 @@
 {
-  "id": "949a40de-eabb-4132-aa2c-3da8344c2ba5",
+  "id": "7677ece8-adf6-49b6-a8b1-7f6d2757f8d4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -618,26 +618,6 @@
           "notNull": true,
           "default": "'available'"
         },
-        "googleEventId": {
-          "name": "googleEventId",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "googleHtmlLink": {
-          "name": "googleHtmlLink",
-          "type": "varchar(500)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "syncStatus": {
-          "name": "syncStatus",
-          "type": "sync_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'pending'"
-        },
         "auditUserId": {
           "name": "auditUserId",
           "type": "uuid",
@@ -966,102 +946,6 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
-    },
-    "public.WhatsAppMessages": {
-      "name": "WhatsAppMessages",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "appointmentId": {
-          "name": "appointmentId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "destinationPhone": {
-          "name": "destinationPhone",
-          "type": "varchar(20)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "messageType": {
-          "name": "messageType",
-          "type": "message_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "messageBody": {
-          "name": "messageBody",
-          "type": "varchar(1000)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sentAt": {
-          "name": "sentAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "deliveryStatus": {
-          "name": "deliveryStatus",
-          "type": "delivery_status",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'sent'"
-        },
-        "whatsappMessageId": {
-          "name": "whatsappMessageId",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "whatsapp_messages_appointment_id_idx": {
-          "name": "whatsapp_messages_appointment_id_idx",
-          "columns": [
-            {
-              "expression": "appointmentId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "WhatsAppMessages_appointmentId_MedicalAppointments_id_fk": {
-          "name": "WhatsAppMessages_appointmentId_MedicalAppointments_id_fk",
-          "tableFrom": "WhatsAppMessages",
-          "tableTo": "MedicalAppointments",
-          "columnsFrom": [
-            "appointmentId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -1079,6 +963,7 @@
       "schema": "public",
       "values": [
         "available",
+        "pending",
         "busy",
         "blocked",
         "completed",
@@ -1110,16 +995,6 @@
         "comprehensive"
       ]
     },
-    "public.delivery_status": {
-      "name": "delivery_status",
-      "schema": "public",
-      "values": [
-        "sent",
-        "delivered",
-        "read",
-        "failed"
-      ]
-    },
     "public.event_type": {
       "name": "event_type",
       "schema": "public",
@@ -1128,25 +1003,6 @@
         "block",
         "vacation",
         "meeting"
-      ]
-    },
-    "public.message_type": {
-      "name": "message_type",
-      "schema": "public",
-      "values": [
-        "confirmation",
-        "reminder",
-        "cancellation",
-        "rescheduling"
-      ]
-    },
-    "public.sync_status": {
-      "name": "sync_status",
-      "schema": "public",
-      "values": [
-        "pending",
-        "synced",
-        "error"
       ]
     },
     "public.user_role": {

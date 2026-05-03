@@ -1,28 +1,27 @@
+import Link from 'next/link'
 import { createServerApi } from '@/shared/api/server'
-import {
-  CalendarioDisponibilidadWidget,
-  parseWeekParam,
-} from '@/widgets/calendario-disponibilidad'
+import { getServerSession } from '@/shared/auth/get-session.server'
+import { CalendarioDisponibilidadWidget } from '@/widgets/calendario-disponibilidad'
 import { DoctorPicker } from '@/features/doctor-picker'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { DayNav } from '@/shared/ui'
+import { Card, CardContent } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 
 interface DisponibilidadPageProps {
+  fecha:     string
   doctorId?: string
-  week?:     string
 }
 
-export async function DisponibilidadPage({ doctorId, week }: DisponibilidadPageProps) {
+export async function DisponibilidadPage({ fecha, doctorId }: DisponibilidadPageProps) {
   const api = await createServerApi()
+  const session = await getServerSession()
+
   const { data: doctors, error: doctorsError } = await api.users.doctors.get()
 
   if (doctorsError || !doctors) {
     return (
       <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Disponibilidad</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <Alert variant="destructive" className="text-sm">
             No se pudo cargar la lista de médicos. Intenta de nuevo más tarde.
           </Alert>
@@ -33,72 +32,72 @@ export async function DisponibilidadPage({ doctorId, week }: DisponibilidadPageP
 
   const selectedDoctor = doctorId ? doctors.find((d) => d.id === doctorId) : undefined
 
+  const buildHref = (f: string) =>
+    doctorId
+      ? `/disponibilidad?fecha=${f}&doctor_id=${doctorId}`
+      : `/disponibilidad?fecha=${f}`
+
   if (!selectedDoctor) {
     return (
       <div className="space-y-6">
         <header>
           <p className="text-xs font-semibold uppercase tracking-widest text-primary">Pacientes</p>
           <h1>Selecciona un médico</h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="mt-1 text-muted-foreground">
             Elige al profesional con quien deseas reservar tu cita.
           </p>
         </header>
         <DoctorPicker
           doctors={doctors}
           baseHref="/disponibilidad"
-          extraQuery={{ week }}
+          extraQuery={{ fecha }}
         />
       </div>
     )
   }
 
-  const range = parseWeekParam(week)
   const { data: slots, error: slotsError } = await api['schedule-events'].get({
-  query: {
-    doctor_id: selectedDoctor.id,
-    date_from: range.dateFrom,
-    date_to:   range.dateTo,
-  },
-  fetch: { cache: 'no-store' },
-})
+    query: {
+      doctor_id: selectedDoctor.id,
+      date_from: fecha,
+      date_to:   fecha,
+    },
+    fetch: { cache: 'no-store' },
+  })
+
+  const slotCount = slots?.length ?? 0
 
   return (
     <div className="space-y-6">
       <header>
+        <Link
+          href={`/disponibilidad?fecha=${fecha}`}
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-2"
+        >
+          ← Médicos
+        </Link>
         <p className="text-xs font-semibold uppercase tracking-widest text-primary">
           Disponibilidad de {selectedDoctor.name}
         </p>
         <h1>Horarios disponibles</h1>
-        <CardDescription>
-          Cambia de médico abajo para ver otra agenda.
-        </CardDescription>
       </header>
 
-      <DoctorPicker
-        doctors={doctors}
-        baseHref="/disponibilidad"
-        currentId={selectedDoctor.id}
-        extraQuery={{ week }}
+      <DayNav
+        fecha={fecha}
+        buildHref={buildHref}
+        subtitle={`${slotCount} ${slotCount === 1 ? 'cupo disponible' : 'cupos disponibles'}`}
       />
 
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-xl font-semibold">Semana {range.iso}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {slotsError ? (
-            <Alert variant="destructive" className="text-sm">
-              No se pudo cargar la disponibilidad. Intenta de nuevo más tarde.
-            </Alert>
-          ) : (
-            <CalendarioDisponibilidadWidget
-              slots={slots}
-              currentWeek={range.iso}
-              days={range.days}
-            />
-          )}
-        </CardContent>
-      </Card>
+      {slotsError ? (
+        <Alert variant="destructive" className="text-sm">
+          No se pudo cargar la disponibilidad. Intenta de nuevo más tarde.
+        </Alert>
+      ) : (
+        <CalendarioDisponibilidadWidget
+          slots={slots ?? []}
+          isAuthenticated={!!session}
+        />
+      )}
     </div>
   )
 }

@@ -8,6 +8,7 @@ import { AppError } from '~/common/errors/app-error'
 import {
   IAppointmentsRepository,
   type AppointmentWithEvent,
+  type AppointmentWithSlot,
   type BookAppointmentData,
   type PaginationInput,
 } from '../../domain/interfaces/appointments.repository'
@@ -48,6 +49,21 @@ export class DrizzleAppointmentsRepository extends IAppointmentsRepository {
     return row ? toEntity(row) : null
   }
 
+  findSlotById = async (eventId: string, tx: TxClient): Promise<{ availabilityStatus: string; eventType: string } | null> => {
+    const row = await tx.query.ScheduleEvents.findFirst({
+      where: eq(ScheduleEvents.id, eventId),
+    })
+    if (!row) return null
+    return { availabilityStatus: row.availabilityStatus, eventType: row.eventType }
+  }
+
+  updateSlotStatus = async (eventId: string, status: string, tx: TxClient): Promise<void> => {
+    await tx
+      .update(ScheduleEvents)
+      .set({ availabilityStatus: status as typeof ScheduleEvents.$inferSelect.availabilityStatus })
+      .where(eq(ScheduleEvents.id, eventId))
+  }
+
   book = async (data: BookAppointmentData, tx: TxClient): Promise<IAppointment> => {
     try {
       const [row] = await tx
@@ -65,6 +81,27 @@ export class DrizzleAppointmentsRepository extends IAppointmentsRepository {
       }
       throw err
     }
+  }
+
+  findByIdWithSlot = async (id: string, tx: TxClient): Promise<AppointmentWithSlot | null> => {
+    const rows = await tx
+      .select({
+        id:           MedicalAppointments.id,
+        eventId:      MedicalAppointments.eventId,
+        patientDui:   MedicalAppointments.patientDui,
+        bookingReason: MedicalAppointments.bookingReason,
+        slotStatus:   ScheduleEvents.availabilityStatus,
+        slotDoctorId: ScheduleEvents.doctorId,
+      })
+      .from(MedicalAppointments)
+      .innerJoin(ScheduleEvents, eq(ScheduleEvents.id, MedicalAppointments.eventId))
+      .where(eq(MedicalAppointments.id, id))
+      .limit(1)
+    return rows[0] ?? null
+  }
+
+  deleteById = async (id: string, tx: TxClient): Promise<void> => {
+    await tx.delete(MedicalAppointments).where(eq(MedicalAppointments.id, id))
   }
 
   findByPatientDui = async (

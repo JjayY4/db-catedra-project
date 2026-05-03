@@ -8,4 +8,5 @@ export abstract class IPatientsRepository {
   abstract create(input: CompleteProfileInput, userId: string, tx: TxClient): Promise<IPatient>
   abstract linkUser(dui: string, userId: string, tx: TxClient): Promise<IPatient>
   abstract findAll(tx: TxClient): Promise<IPatient[]>
+  abstract findPaginated(page: number, pageSize: number, tx: TxClient): Promise<{ items: IPatient[]; total: number }>
 }

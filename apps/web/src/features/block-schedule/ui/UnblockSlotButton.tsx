@@ -19,7 +19,8 @@ export function UnblockSlotButton({ slotId }: UnblockSlotButtonProps) {
     setError(null)
     setSubmitting(true)
     try {
-      const { error: apiError } = await clientApi['schedule-events']({ id: slotId }).delete()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: apiError } = await (clientApi as any)['schedule-events']({ id: slotId }).delete()
       if (apiError) {
         const message = typeof apiError.value === 'object' && apiError.value && 'message' in apiError.value
           ? String((apiError.value as { message: unknown }).message)

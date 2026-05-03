@@ -15,9 +15,11 @@ export class GetScheduleEventUseCase extends BaseUseCase<{ id: string }, Availab
     return {
       id:        slot.id,
       doctorId:  slot.doctorId,
-      eventDate: slot.eventDate,
-      startTime: slot.startTime,
-      endTime:   slot.endTime,
+      eventDate: typeof slot.eventDate === 'object' && slot.eventDate !== null
+        ? (slot.eventDate as Date).toISOString().split('T')[0]
+        : String(slot.eventDate),
+      startTime: String(slot.startTime).slice(0, 5),
+      endTime:   String(slot.endTime).slice(0, 5),
     }
   }
 }

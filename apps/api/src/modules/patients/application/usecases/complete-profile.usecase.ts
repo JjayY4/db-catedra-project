@@ -31,14 +31,16 @@ export class CompleteProfileUseCase extends BaseUseCase<Input, PatientOutput> {
     }
 
     return {
-      dui:           patient.dui,
-      userId:        patient.userId,
-      firstName:     patient.firstName,
-      lastName:      patient.lastName,
-      whatsappPhone: patient.whatsappPhone,
-      birthDate:     patient.birthDate,
-      insuranceId:   patient.insuranceId,
-      recordId:      patient.recordId,
+      dui:               patient.dui,
+      userId:            patient.userId,
+      firstName:         patient.firstName,
+      lastName:          patient.lastName,
+      whatsappPhone:     patient.whatsappPhone,
+      birthDate:         patient.birthDate,
+      insuranceId:       patient.insuranceId,
+      recordId:          patient.recordId,
+      insuranceName:     patient.insuranceName,
+      insuranceCoverage: patient.insuranceCoverage,
     }
   }
 }

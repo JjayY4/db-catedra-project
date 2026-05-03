@@ -1,24 +1,60 @@
+import Link from 'next/link'
 import { CalendarDays, ClipboardList, MessageCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { buttonVariants } from '@/components/ui/button'
+import { createServerApi } from '@/shared/api/server'
 import type { User } from '@/entities/user'
 
 interface ReceptionistDashboardPageProps {
   user: User
 }
 
-export function ReceptionistDashboardPage({ user }: ReceptionistDashboardPageProps) {
+export async function ReceptionistDashboardPage({ user }: ReceptionistDashboardPageProps) {
+  const today = new Date().toISOString().split('T')[0]
+
+  let totalCitas = 0
+  let reservadas = 0
+
+  try {
+    const api = await createServerApi()
+    const { data: doctors } = await api.users.doctors.get()
+    const firstDoctor = doctors?.[0]
+    if (firstDoctor) {
+      const { data: agendaItems } = await api.agenda.daily.get({
+        query: { doctor_id: firstDoctor.id, fecha: today },
+      })
+      if (agendaItems) {
+        totalCitas = agendaItems.length
+        reservadas = agendaItems.filter(
+          (item) => item.availabilityStatus === 'busy',
+        ).length
+      }
+    }
+  } catch {
+    // show 0 if API fails
+  }
+
   return (
     <div className="space-y-8">
       <header className="flex flex-col gap-1">
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Reception</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Recepción</p>
         <h1>Reception Dashboard</h1>
         <p className="text-muted-foreground">Welcome back, {user.email}</p>
       </header>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard icon={CalendarDays} title="Today's Schedule" value="—" tone="primary" />
-        <StatCard icon={ClipboardList} title="Pending Check-ins" value="—" tone="warning" />
-        <StatCard icon={MessageCircle} title="New Messages" value="—" tone="secondary" />
+        <StatCard icon={CalendarDays} title="Citas hoy" value={String(totalCitas)} tone="primary" />
+        <StatCard icon={ClipboardList} title="Reservadas hoy" value={String(reservadas)} tone="warning" />
+        <StatCard icon={MessageCircle} title="Disponibles" value={String(totalCitas - reservadas)} tone="secondary" />
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        <Link href="/agenda" className={buttonVariants()}>
+          Ver agenda de hoy
+        </Link>
+        <Link href="/dashboard/receptionist/register-patient" className={buttonVariants({ variant: 'outline' })}>
+          Registrar paciente
+        </Link>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@ import { t, type Static } from 'elysia'
 
 export const AgendaStatusSchema = t.Union([
   t.Literal('disponible'),
+  t.Literal('pendiente'),
   t.Literal('reservado'),
   t.Literal('completado'),
   t.Literal('cancelado'),
@@ -16,6 +17,7 @@ export const AgendaItemOutputSchema = t.Object({
   bookingReason:  t.Union([t.String(), t.Null()]),
   status:         AgendaStatusSchema,
   mainDiagnosis:  t.Union([t.String(), t.Null()]),
+  appointmentId:  t.Union([t.String(), t.Null()]),
 })
 
 export const AgendaListOutputSchema = t.Array(AgendaItemOutputSchema)

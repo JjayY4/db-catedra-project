@@ -6,7 +6,6 @@ import { MedicalInsurances } from '@project/db/src/schema/medical-insurances.sch
 import { MedicalRecords } from '@project/db/src/schema/medical-records.schema'
 import { ScheduleEvents } from '@project/db/src/schema/schedule-events.schema'
 import { MedicalAppointments } from '@project/db/src/schema/medical-appointments.schema'
-import { WhatsAppMessages } from '@project/db/src/schema/whatsapp-messages.schema'
 import { ClinicalConsultations } from '@project/db/src/schema/clinical-consultations.schema'
 import { seedUsers } from './users.seed'
 import { seedMedicalInsurances } from './medical-insurances.seed'
@@ -30,7 +29,6 @@ async function reportCounts(): Promise<void> {
     { name: 'MedicalRecords',       table: MedicalRecords },
     { name: 'ScheduleEvents',       table: ScheduleEvents },
     { name: 'MedicalAppointments',  table: MedicalAppointments },
-    { name: 'WhatsAppMessages',     table: WhatsAppMessages },
     { name: 'ClinicalConsultations', table: ClinicalConsultations },
   ]
   console.log('\nFinal row counts:')

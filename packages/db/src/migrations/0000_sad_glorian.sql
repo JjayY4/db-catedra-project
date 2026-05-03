@@ -1,11 +1,8 @@
 CREATE TYPE "public"."account_status" AS ENUM('active', 'inactive', 'suspended');--> statement-breakpoint
-CREATE TYPE "public"."availability_status" AS ENUM('available', 'busy', 'blocked', 'completed', 'cancelled');--> statement-breakpoint
+CREATE TYPE "public"."availability_status" AS ENUM('available', 'pending', 'busy', 'blocked', 'completed', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."blood_type" AS ENUM('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-');--> statement-breakpoint
 CREATE TYPE "public"."coverage_type" AS ENUM('basic', 'complete', 'dental', 'vision', 'comprehensive');--> statement-breakpoint
-CREATE TYPE "public"."delivery_status" AS ENUM('sent', 'delivered', 'read', 'failed');--> statement-breakpoint
 CREATE TYPE "public"."event_type" AS ENUM('appointment', 'block', 'vacation', 'meeting');--> statement-breakpoint
-CREATE TYPE "public"."message_type" AS ENUM('confirmation', 'reminder', 'cancellation', 'rescheduling');--> statement-breakpoint
-CREATE TYPE "public"."sync_status" AS ENUM('pending', 'synced', 'error');--> statement-breakpoint
 CREATE TYPE "public"."user_role" AS ENUM('doctor', 'patient', 'receptionist');--> statement-breakpoint
 CREATE TABLE "Accounts" (
 	"id" text PRIMARY KEY NOT NULL,
@@ -80,9 +77,6 @@ CREATE TABLE "ScheduleEvents" (
 	"endTime" time NOT NULL,
 	"eventType" "event_type" NOT NULL,
 	"availabilityStatus" "availability_status" DEFAULT 'available' NOT NULL,
-	"googleEventId" varchar(255),
-	"googleHtmlLink" varchar(500),
-	"syncStatus" "sync_status" DEFAULT 'pending' NOT NULL,
 	"auditUserId" uuid
 );
 --> statement-breakpoint
@@ -120,17 +114,6 @@ CREATE TABLE "Verifications" (
 	"updatedAt" timestamp
 );
 --> statement-breakpoint
-CREATE TABLE "WhatsAppMessages" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"appointmentId" uuid NOT NULL,
-	"destinationPhone" varchar(20) NOT NULL,
-	"messageType" "message_type" NOT NULL,
-	"messageBody" varchar(1000) NOT NULL,
-	"sentAt" timestamp DEFAULT now() NOT NULL,
-	"deliveryStatus" "delivery_status" DEFAULT 'sent' NOT NULL,
-	"whatsappMessageId" varchar(255)
-);
---> statement-breakpoint
 ALTER TABLE "Accounts" ADD CONSTRAINT "Accounts_userId_Users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."Users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ClinicalConsultations" ADD CONSTRAINT "ClinicalConsultations_recordId_MedicalRecords_id_fk" FOREIGN KEY ("recordId") REFERENCES "public"."MedicalRecords"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ClinicalConsultations" ADD CONSTRAINT "ClinicalConsultations_appointmentId_MedicalAppointments_id_fk" FOREIGN KEY ("appointmentId") REFERENCES "public"."MedicalAppointments"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -142,7 +125,6 @@ ALTER TABLE "Patients" ADD CONSTRAINT "Patients_insuranceId_MedicalInsurances_id
 ALTER TABLE "ScheduleEvents" ADD CONSTRAINT "ScheduleEvents_doctorId_Users_id_fk" FOREIGN KEY ("doctorId") REFERENCES "public"."Users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ScheduleEvents" ADD CONSTRAINT "ScheduleEvents_auditUserId_Users_id_fk" FOREIGN KEY ("auditUserId") REFERENCES "public"."Users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "Sessions" ADD CONSTRAINT "Sessions_userId_Users_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."Users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "WhatsAppMessages" ADD CONSTRAINT "WhatsAppMessages_appointmentId_MedicalAppointments_id_fk" FOREIGN KEY ("appointmentId") REFERENCES "public"."MedicalAppointments"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "accounts_user_id_idx" ON "Accounts" USING btree ("userId");--> statement-breakpoint
 CREATE INDEX "clinical_consultations_record_id_idx" ON "ClinicalConsultations" USING btree ("recordId");--> statement-breakpoint
 CREATE INDEX "medical_appointments_patient_dui_idx" ON "MedicalAppointments" USING btree ("patientDui");--> statement-breakpoint
@@ -152,7 +134,6 @@ CREATE INDEX "schedule_events_audit_user_id_idx" ON "ScheduleEvents" USING btree
 CREATE INDEX "schedule_events_doctor_date_idx" ON "ScheduleEvents" USING btree ("doctorId","eventDate");--> statement-breakpoint
 CREATE INDEX "sessions_user_id_idx" ON "Sessions" USING btree ("userId");--> statement-breakpoint
 CREATE INDEX "verifications_identifier_idx" ON "Verifications" USING btree ("identifier");--> statement-breakpoint
-CREATE INDEX "whatsapp_messages_appointment_id_idx" ON "WhatsAppMessages" USING btree ("appointmentId");--> statement-breakpoint
 CREATE VIEW "public"."DailyScheduleView" AS (
   SELECT
     se.id                 AS "eventId",

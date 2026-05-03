@@ -281,3 +281,40 @@ BEGIN
     ORDER BY ma."bookedAt" DESC NULLS LAST;
 END;
 $$;
+
+
+-- -----------------------------------------------------------------------------
+-- sp_check_availability(p_date)
+--
+-- Retorna todos los slots de cita disponibles para una fecha dada.
+--
+-- Read-only: implementado como funcion RETURNS TABLE para consumir via
+-- `SELECT * FROM sp_check_availability(...)`.
+--
+-- Uso:
+--   SELECT * FROM sp_check_availability('2025-06-01');
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION sp_check_availability(p_date DATE)
+RETURNS TABLE (
+  event_id   UUID,
+  doctor_id  UUID,
+  event_date DATE,
+  start_time TIME,
+  end_time   TIME
+)
+LANGUAGE plpgsql AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    se.id,
+    se."doctorId",
+    se."eventDate",
+    se."startTime",
+    se."endTime"
+  FROM "ScheduleEvents" se
+  WHERE se."eventDate" = p_date
+    AND se."eventType" = 'appointment'
+    AND se."availabilityStatus" = 'available'
+  ORDER BY se."startTime";
+END;
+$$;

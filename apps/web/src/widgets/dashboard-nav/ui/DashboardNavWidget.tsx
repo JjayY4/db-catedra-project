@@ -8,6 +8,7 @@ import {
   CalendarDays,
   ClipboardList,
   LayoutDashboard,
+  Shield,
   Stethoscope,
   Users,
   UserCog,
@@ -24,7 +25,8 @@ const NAV_LINKS: Record<string, NavLink[]> = {
     { href: '/dashboard/doctor/agenda',   label: 'Agenda de hoy',       icon: CalendarDays },
     { href: '/dashboard/doctor/horarios', label: 'Configurar horarios', icon: CalendarClock },
     { href: '/dashboard/doctor/usuarios', label: 'Usuarios',            icon: UserCog },
-    { href: '/dashboard/doctor/medical-records', label: 'Historial de Pacientes',    icon: Users },
+    { href: '/dashboard/doctor/medical-records', label: 'Historial de Pacientes', icon: Users },
+    { href: '/dashboard/aseguradoras',    label: 'Aseguradoras',        icon: Shield },
   ],
   patient: [
     { href: '/dashboard/patient', label: 'Dashboard',          icon: LayoutDashboard },
@@ -32,8 +34,10 @@ const NAV_LINKS: Record<string, NavLink[]> = {
     { href: '/mis-citas',         label: 'Mis citas',          icon: ClipboardList },
   ],
   receptionist: [
-    { href: '/dashboard/receptionist', label: 'Dashboard',     icon: LayoutDashboard },
-    { href: '/agenda',                 label: 'Agenda diaria', icon: CalendarDays },
+    { href: '/dashboard/receptionist',           label: 'Dashboard',     icon: LayoutDashboard },
+    { href: '/agenda',                           label: 'Agenda diaria', icon: CalendarDays },
+    { href: '/dashboard/receptionist/pacientes', label: 'Pacientes',     icon: Users },
+    { href: '/dashboard/aseguradoras',           label: 'Aseguradoras',  icon: Shield },
   ],
 }
 

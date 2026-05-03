@@ -85,13 +85,11 @@ export function ReservarCitaForm({ slot }: ReservarCitaFormProps) {
     return (
       <Card className="space-y-3 p-4">
         <CardHeader className="px-0 pt-0">
-          <CardTitle className="text-xl">Cita confirmada</CardTitle>
+          <CardTitle className="text-xl">Solicitud enviada</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 px-0">
           <p className="text-sm text-foreground">
-            Tu cita ha sido reservada para el <strong>{slot.eventDate}</strong> de{' '}
-            <strong>{formatTime(slot.startTime)}</strong> a{' '}
-            <strong>{formatTime(slot.endTime)}</strong>.
+            Tu solicitud de cita ha sido enviada. El médico la confirmará en breve.
           </p>
           <p className="text-sm text-muted-foreground">Motivo: {confirmed.bookingReason}</p>
           <div className="flex gap-2">

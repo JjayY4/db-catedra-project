@@ -9,7 +9,7 @@ export const MedicalAppointments = pgTable('MedicalAppointments', {
   patientDui:    varchar('patientDui', { length: 10 }).notNull()
                    .references(() => Patients.dui),
   bookingReason: varchar('bookingReason', { length: 500 }).notNull(),
-  bookedAt:      timestamp('bookedAt').notNull().defaultNow(),
+  bookedAt:      timestamp('bookedAt', { mode: 'string' }).notNull().defaultNow(),
 }, (t) => [
   index('medical_appointments_patient_dui_idx').on(t.patientDui),
 ])

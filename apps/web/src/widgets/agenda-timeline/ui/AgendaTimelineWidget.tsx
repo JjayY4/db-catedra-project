@@ -1,13 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { useState, useTransition } from 'react'
 import type { AgendaItemOutput } from '@project/api/src/modules/doctor-agenda/application/dtos/outputs/agenda-item.output'
 import { clientApi } from '@/shared/api/client'
+import { SlotCard, DayNav } from '@/shared/ui'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { Alert } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 type AgendaStatus = AgendaItemOutput['status']
 
@@ -18,61 +16,41 @@ interface AgendaTimelineWidgetProps {
   fecha: string
 }
 
-const STATUS_LABEL: Record<AgendaStatus, string> = {
-  disponible: 'Disponible',
-  reservado:  'Reservado',
-  completado: 'Completado',
-  cancelado:  'Cancelado',
-}
-
-const STATUS_STYLES: Record<AgendaStatus, { card: string; badge: string; stripe: string }> = {
-  disponible: {
-    card:   'bg-muted/40 border-border',
-    badge:  'bg-muted text-muted-foreground',
-    stripe: 'bg-border',
-  },
-  reservado: {
-    card:   'bg-primary/5 border-primary/30',
-    badge:  'bg-primary/15 text-primary',
-    stripe: 'bg-primary',
-  },
-  completado: {
-    card:   'bg-success/10 border-success/30',
-    badge:  'bg-success/20 text-success',
-    stripe: 'bg-success',
-  },
-  cancelado: {
-    card:   'bg-destructive/10 border-destructive/30',
-    badge:  'bg-destructive/15 text-destructive',
-    stripe: 'bg-destructive',
-  },
-}
-
-function shiftDate(fecha: string, days: number): string {
-  const date = new Date(`${fecha}T00:00:00.000Z`)
-  date.setUTCDate(date.getUTCDate() + days)
-  return date.toISOString().slice(0, 10)
-}
-
-function formatLongDate(fecha: string): string {
-  return new Date(`${fecha}T00:00:00.000Z`).toLocaleDateString('es-ES', {
-    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC',
-  })
+const STATUS_MAP: Record<AgendaStatus, 'available' | 'busy' | 'completed' | 'cancelled' | 'pending'> = {
+  disponible: 'available',
+  reservado:  'busy',
+  completado: 'completed',
+  cancelado:  'cancelled',
+  pendiente:  'pending',
 }
 
 function formatTime(t: string): string {
   return t.slice(0, 5)
 }
 
-function SlotCard({ item, fecha, onBlocked }: { item: AgendaItem; fecha: string; onBlocked: (slotId: string) => void }) {
-  const [isPending, startTransition] = useTransition()
+function AgendaSlotCard({
+  item,
+  fecha,
+  onBlocked,
+  onAccepted,
+  onDeclined,
+}: {
+  item: AgendaItem
+  fecha: string
+  onBlocked: (slotId: string) => void
+  onAccepted: (slotId: string) => void
+  onDeclined: (slotId: string) => void
+}) {
+  const [isBlockPending, startBlockTransition] = useTransition()
+  const [isAcceptPending, startAcceptTransition] = useTransition()
+  const [isDeclinePending, startDeclineTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const style = STATUS_STYLES[item.status]
   const isFree = item.status === 'disponible'
+  const isPending = item.status === 'pendiente'
 
   function handleBlock() {
     setError(null)
-    startTransition(async () => {
+    startBlockTransition(async () => {
       const { error: err } = await clientApi.doctor['block-slot'].post({
         fecha,
         start: item.startTime,
@@ -90,64 +68,106 @@ function SlotCard({ item, fecha, onBlocked }: { item: AgendaItem; fecha: string;
     })
   }
 
+  function handleAccept() {
+    if (!item.appointmentId) return
+    setError(null)
+    startAcceptTransition(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: err } = await (clientApi as any).appointments({ id: item.appointmentId! }).accept.patch({})
+      if (err) {
+        const val = err.value
+        const msg = val && typeof val === 'object' && 'message' in val && typeof val.message === 'string'
+          ? val.message
+          : 'No se pudo aceptar la cita.'
+        setError(msg)
+        return
+      }
+      onAccepted(item.slotId)
+    })
+  }
+
+  function handleDecline() {
+    if (!item.appointmentId) return
+    setError(null)
+    startDeclineTransition(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: err } = await (clientApi as any).appointments({ id: item.appointmentId! }).decline.patch({})
+      if (err) {
+        const val = err.value
+        const msg = val && typeof val === 'object' && 'message' in val && typeof val.message === 'string'
+          ? val.message
+          : 'No se pudo rechazar la cita.'
+        setError(msg)
+        return
+      }
+      onDeclined(item.slotId)
+    })
+  }
+
+  const label = isFree
+    ? 'Cupo disponible'
+    : (item.patientName ?? 'Paciente sin nombre')
+
+  const subLabel = isFree
+    ? undefined
+    : item.bookingReason ?? undefined
+
+  const diagnosisNote =
+    !isFree && item.status === 'completado' && item.mainDiagnosis
+      ? `Diagnóstico: ${item.mainDiagnosis}`
+      : undefined
+
   return (
     <li key={item.slotId}>
-      <Card className={cn('flex flex-row gap-0 border py-0', style.card)}>
-        <span aria-hidden className={cn('w-1.5 shrink-0 self-stretch rounded-l-xl', style.stripe)} />
-        <CardContent className="flex w-full flex-col gap-2 py-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1">
-            <p className="font-mono text-sm text-muted-foreground">
-              {formatTime(item.startTime)} – {formatTime(item.endTime)}
-            </p>
-            {isFree ? (
-              <p className="text-sm italic text-muted-foreground">Cupo disponible</p>
-            ) : (
-              <div className="space-y-0.5">
-                <p className="text-base font-semibold">
-                  {item.patientName ?? 'Paciente sin nombre'}
-                </p>
-                {item.bookingReason && (
-                  <p className="text-sm text-muted-foreground">{item.bookingReason}</p>
-                )}
-                {item.status === 'completado' && item.mainDiagnosis && (
-                  <p className="text-sm italic text-success">
-                    Diagnóstico: {item.mainDiagnosis}
-                  </p>
-                )}
-              </div>
-            )}
+      <SlotCard
+        startTime={formatTime(item.startTime)}
+        endTime={formatTime(item.endTime)}
+        status={STATUS_MAP[item.status]}
+        label={label}
+        subLabel={diagnosisNote ?? subLabel}
+        actions={
+          <>
             {error && <p className="text-xs text-destructive">{error}</p>}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', style.badge)}>
-              {STATUS_LABEL[item.status]}
-            </span>
             {isFree && (
               <Button
                 variant="destructive"
                 size="sm"
-                disabled={isPending}
+                disabled={isBlockPending}
                 onClick={handleBlock}
               >
-                {isPending ? 'Bloqueando…' : 'Bloquear'}
+                {isBlockPending ? 'Bloqueando…' : 'Bloquear'}
               </Button>
             )}
-            {!isFree && item.status !== 'disponible' && (
-              <span className={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'pointer-events-none opacity-60')}>
-                Ver historial
-              </span>
+            {isPending && (
+              <>
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={isAcceptPending || isDeclinePending}
+                  onClick={handleAccept}
+                  className="bg-success text-success-foreground hover:bg-success/90"
+                >
+                  {isAcceptPending ? 'Aceptando…' : 'Aceptar'}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isAcceptPending || isDeclinePending}
+                  onClick={handleDecline}
+                >
+                  {isDeclinePending ? 'Rechazando…' : 'Rechazar'}
+                </Button>
+              </>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </>
+        }
+      />
     </li>
   )
 }
 
 export function AgendaTimelineWidget({ items: initialItems, fecha }: AgendaTimelineWidgetProps) {
   const [items, setItems] = useState<AgendaItem[]>(initialItems)
-  const previous = shiftDate(fecha, -1)
-  const next     = shiftDate(fecha, +1)
 
   function handleBlocked(slotId: string) {
     setItems((prev) =>
@@ -157,24 +177,33 @@ export function AgendaTimelineWidget({ items: initialItems, fecha }: AgendaTimel
     )
   }
 
+  function handleAccepted(slotId: string) {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.slotId === slotId ? { ...item, status: 'reservado' as AgendaStatus } : item
+      )
+    )
+  }
+
+  function handleDeclined(slotId: string) {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.slotId === slotId
+          ? { ...item, status: 'disponible' as AgendaStatus, patientName: null, bookingReason: null, appointmentId: null }
+          : item
+      )
+    )
+  }
+
+  const subtitle = `${items.length} ${items.length === 1 ? 'bloque' : 'bloques'} en agenda`
+
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold capitalize">{formatLongDate(fecha)}</h2>
-          <p className="text-sm text-muted-foreground">
-            {items.length} {items.length === 1 ? 'bloque' : 'bloques'} en agenda
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href={{ query: { fecha: previous } }} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-            ← Anterior
-          </Link>
-          <Link href={{ query: { fecha: next } }} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-            Siguiente →
-          </Link>
-        </div>
-      </div>
+      <DayNav
+        fecha={fecha}
+        buildHref={(f) => `/dashboard/doctor/agenda?fecha=${f}`}
+        subtitle={subtitle}
+      />
 
       {items.length === 0 ? (
         <Card>
@@ -187,7 +216,14 @@ export function AgendaTimelineWidget({ items: initialItems, fecha }: AgendaTimel
       ) : (
         <ol className="space-y-3">
           {items.map((item) => (
-            <SlotCard key={item.slotId} item={item} fecha={fecha} onBlocked={handleBlocked} />
+            <AgendaSlotCard
+              key={item.slotId}
+              item={item}
+              fecha={fecha}
+              onBlocked={handleBlocked}
+              onAccepted={handleAccepted}
+              onDeclined={handleDeclined}
+            />
           ))}
         </ol>
       )}

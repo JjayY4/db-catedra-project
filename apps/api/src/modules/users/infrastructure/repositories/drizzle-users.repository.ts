@@ -68,7 +68,7 @@ export class DrizzleUsersRepository extends IUsersRepository {
 
   updateRole = async (id: string, role: UserRole, tx: TxClient): Promise<IUser> => {
     const [row] = await tx.update(Users)
-      .set({ role, updatedAt: new Date() })
+      .set({ role, updatedAt: new Date().toISOString() })
       .where(eq(Users.id, id))
       .returning()
     if (!row) throw new Error('User not found')
@@ -77,7 +77,7 @@ export class DrizzleUsersRepository extends IUsersRepository {
 
   updateName = async (id: string, name: string, tx: TxClient): Promise<IUser> => {
     const [row] = await tx.update(Users)
-      .set({ name, updatedAt: new Date() })
+      .set({ name, updatedAt: new Date().toISOString() })
       .where(eq(Users.id, id))
       .returning()
     if (!row) throw new Error('User not found')
@@ -86,7 +86,7 @@ export class DrizzleUsersRepository extends IUsersRepository {
 
   deactivate = async (id: string, tx: TxClient): Promise<void> => {
     await tx.update(Users)
-      .set({ accountStatus: 'inactive', updatedAt: new Date() })
+      .set({ accountStatus: 'inactive', updatedAt: new Date().toISOString() })
       .where(eq(Users.id, id))
   }
 }

@@ -5,7 +5,7 @@ export const AppointmentOutputSchema = t.Object({
   eventId:       t.String(),
   patientDui:    t.String(),
   bookingReason: t.String(),
-  bookedAt:      t.Date(),
+  bookedAt:      t.String(),
 })
 
 export type AppointmentOutput = Static<typeof AppointmentOutputSchema>

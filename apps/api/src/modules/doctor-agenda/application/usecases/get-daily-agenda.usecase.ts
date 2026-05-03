@@ -30,6 +30,7 @@ export class GetDailyAgendaUseCase extends BaseUseCase<Input, AgendaItemOutput[]
       bookingReason: item.bookingReason ?? null,
       status:        item.status,
       mainDiagnosis: item.mainDiagnosis ?? null,
+      appointmentId: item.appointmentId ?? null,
     }))
   }
 }

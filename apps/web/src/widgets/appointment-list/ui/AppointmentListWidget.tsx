@@ -18,6 +18,13 @@ function formatTime(value: string): string {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  if (status === 'pending') {
+    return (
+      <Badge className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">
+        Pendiente de aprobación
+      </Badge>
+    )
+  }
   const variant =
     status === 'completed' ? 'success'
     : status === 'cancelled' ? 'destructive'
@@ -60,8 +67,21 @@ export function AppointmentListWidget({ upcoming, past }: AppointmentListWidgetP
                         {appt.eventDate} · {formatTime(appt.startTime)}–{formatTime(appt.endTime)}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">{appt.bookingReason}</p>
+                      {appt.status === 'pending' && (
+                        <p className="text-xs italic text-amber-700 mt-2">
+                          Tu cita está en espera de confirmación del médico.
+                        </p>
+                      )}
                     </div>
-                    <StatusBadge status={appt.status} />
+                    <div className="flex items-center gap-2 shrink-0">
+                      <StatusBadge status={appt.status} />
+                      <Link
+                        href={`/mis-citas/${appt.id}`}
+                        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                      >
+                        Ver detalle
+                      </Link>
+                    </div>
                   </div>
                 </Card>
               </li>
@@ -86,7 +106,15 @@ export function AppointmentListWidget({ upcoming, past }: AppointmentListWidgetP
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">{appt.bookingReason}</p>
                     </div>
-                    <StatusBadge status={appt.status} />
+                    <div className="flex items-center gap-2 shrink-0">
+                      <StatusBadge status={appt.status} />
+                      <Link
+                        href={`/mis-citas/${appt.id}`}
+                        className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                      >
+                        Ver detalle
+                      </Link>
+                    </div>
                   </div>
                   {appt.mainDiagnosis && (
                     <div className="text-xs text-muted-foreground border-t border-border pt-2">

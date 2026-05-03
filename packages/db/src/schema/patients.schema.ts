@@ -8,7 +8,7 @@ export const Patients = pgTable('Patients', {
   firstName:     varchar('firstName', { length: 100 }).notNull(),
   lastName:      varchar('lastName', { length: 100 }).notNull(),
   whatsappPhone: varchar('whatsappPhone', { length: 20 }).notNull(),
-  birthDate:     date('birthDate').notNull(),
+  birthDate:     date('birthDate', { mode: 'string' }).notNull(),
   insuranceId:   uuid('insuranceId').references(() => MedicalInsurances.id),
 }, (t) => [
   index('patients_user_id_idx').on(t.userId),
