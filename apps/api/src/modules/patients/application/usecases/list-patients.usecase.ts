@@ -5,13 +5,13 @@ import { IPatientsRepository } from '../../domain/interfaces/patients.repository
 import type { PatientOutput } from '../dtos/outputs/patient.output'
 
 @injectable()
-export class GetMyPatientUseCase extends BaseUseCase<{ userId: string }, PatientOutput | null> {
+export class ListPatientsUseCase extends BaseUseCase<void, PatientOutput[]> {
   constructor(private readonly patients: IPatientsRepository) { super() }
 
-  protected async handle({ userId }: { userId: string }, tx: TxClient): Promise<PatientOutput | null> {
-    const patient = await this.patients.findByUserId(userId, tx)
-    if (!patient) return null
-    return {
+  protected async handle(_input: void, tx: TxClient): Promise<PatientOutput[]> {
+    const allPatients = await this.patients.findAll(tx)
+    
+    return allPatients.map(patient => ({
       dui:           patient.dui,
       userId:        patient.userId,
       firstName:     patient.firstName,
@@ -20,6 +20,6 @@ export class GetMyPatientUseCase extends BaseUseCase<{ userId: string }, Patient
       birthDate:     patient.birthDate,
       insuranceId:   patient.insuranceId,
       recordId:      patient.recordId,
-    }
+    }))
   }
 }

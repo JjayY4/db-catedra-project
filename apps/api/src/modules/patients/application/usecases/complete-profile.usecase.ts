@@ -38,6 +38,7 @@ export class CompleteProfileUseCase extends BaseUseCase<Input, PatientOutput> {
       whatsappPhone: patient.whatsappPhone,
       birthDate:     patient.birthDate,
       insuranceId:   patient.insuranceId,
+      recordId:      patient.recordId,
     }
   }
 }

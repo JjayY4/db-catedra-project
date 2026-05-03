@@ -6,4 +6,5 @@ export interface IPatient {
   whatsappPhone: string
   birthDate:     string
   insuranceId:   string | null
+  recordId:      string | null
 }
