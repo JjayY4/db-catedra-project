@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./src/schema/*": "./src/schema/*.ts",
+    "./src/queries": "./src/queries/index.ts",
     "./src/*": "./src/*.ts"
   },
   "scripts": {

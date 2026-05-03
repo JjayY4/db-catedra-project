@@ -21,6 +21,11 @@ export interface AppointmentWithoutConsultation {
   status: string
 }
 
+export interface CancelledAppointmentsPerDoctor {
+  doctorName: string
+  cancelledCount: number
+}
+
 /**
  * Subconsulta correlacionada en WHERE — pacientes con más de una cita.
  * La subquery cuenta filas de MedicalAppointments por cada paciente externo.
@@ -90,4 +95,23 @@ export async function findAppointmentsWithoutConsultation(): Promise<Appointment
     ORDER BY se."eventDate" DESC
   `)
   return result.rows as unknown as AppointmentWithoutConsultation[]
+}
+
+/**
+ * Cancelled appointments per doctor this month.
+ * Replaces the former WhatsApp failed-delivery subquery.
+ */
+export async function getCancelledAppointmentsPerDoctor(): Promise<CancelledAppointmentsPerDoctor[]> {
+  const result = await db.execute(sql`
+    SELECT
+      u."name"     AS "doctorName",
+      COUNT(*)::int AS "cancelledCount"
+    FROM "ScheduleEvents" se
+    JOIN "Users" u ON u.id = se."doctorId"
+    WHERE se."availabilityStatus" = 'cancelled'
+      AND se."eventDate" >= DATE_TRUNC('month', NOW())
+    GROUP BY u.id, u."name"
+    ORDER BY "cancelledCount" DESC
+  `)
+  return result.rows as unknown as CancelledAppointmentsPerDoctor[]
 }

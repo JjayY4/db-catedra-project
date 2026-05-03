@@ -7,6 +7,7 @@ import { GetMyAppointmentDetailUseCase } from '../application/usecases/get-my-ap
 import { UpdateMedicalRecordUseCase } from '../application/usecases/update-medical-record.usecase'
 import { AppointmentDetailOutputSchema, PatientAppointmentDetailOutputSchema } from '../application/dtos/outputs/appointment-detail.output'
 import { UpdateMedicalRecordInputSchema } from '../application/dtos/inputs/update-medical-record.input'
+import { GetPatientHistoryByDuiUseCase } from '../application/usecases/get-patient-history-by-dui.usecase'
 import { t } from 'elysia'
 
 export const medicalRecordsRoutes = createRouter({ prefix: '/medical-records' })
@@ -71,6 +72,14 @@ export const medicalRecordsRoutes = createRouter({ prefix: '/medical-records' })
         prescribedTreatment: t.Optional(t.String()),
         doctorPrivateNotes:  t.Optional(t.String()),
       }),
+    },
+  )
+  .get(
+    '/patient-history/:dui',
+    async ({ container, params }) => container.get(GetPatientHistoryByDuiUseCase).execute(params.dui),
+    {
+      roles:  ['doctor', 'receptionist'],
+      params: t.Object({ dui: t.String() }),
     },
   )
   .patch(

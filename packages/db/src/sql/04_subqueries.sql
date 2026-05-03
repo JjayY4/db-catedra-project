@@ -52,18 +52,13 @@ WHERE p.dui NOT IN (
 );
 
 
--- Subquery 4: WhatsApp messages with failed delivery per appointment
+-- Subquery 4: Cancelled appointments per doctor this month
 SELECT
-  ma.id  AS "appointmentId",
-  p."firstName",
-  p."lastName",
-  failed."failedCount"
-FROM "MedicalAppointments" ma
-JOIN "Patients" p ON p.dui = ma."patientDui"
-JOIN (
-  SELECT "appointmentId", COUNT(*) AS "failedCount"
-  FROM   "WhatsAppMessages"
-  WHERE  "deliveryStatus" = 'failed'
-  GROUP  BY "appointmentId"
-) AS failed ON failed."appointmentId" = ma.id
-ORDER BY failed."failedCount" DESC;
+  u."name"     AS "doctorName",
+  COUNT(*)     AS "cancelledCount"
+FROM "ScheduleEvents" se
+JOIN "Users" u ON u.id = se."doctorId"
+WHERE se."availabilityStatus" = 'cancelled'
+  AND se."eventDate" >= DATE_TRUNC('month', NOW())
+GROUP BY u.id, u."name"
+ORDER BY "cancelledCount" DESC;

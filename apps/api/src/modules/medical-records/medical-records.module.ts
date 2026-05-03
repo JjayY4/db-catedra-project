@@ -7,6 +7,7 @@ import { CompleteConsultationUseCase } from "./application/usecases/complete-con
 import { GetAppointmentDetailUseCase } from "./application/usecases/get-appointment-detail.usecase";
 import { GetMyAppointmentDetailUseCase } from "./application/usecases/get-my-appointment-detail.usecase";
 import { UpdateMedicalRecordUseCase } from "./application/usecases/update-medical-record.usecase";
+import { GetPatientHistoryByDuiUseCase } from "./application/usecases/get-patient-history-by-dui.usecase";
 
 export class MedicalRecordsModule implements AppModule {
   load(container: Container): void {
@@ -20,5 +21,6 @@ export class MedicalRecordsModule implements AppModule {
     container.bind(GetAppointmentDetailUseCase).toSelf().inRequestScope();
     container.bind(GetMyAppointmentDetailUseCase).toSelf().inRequestScope();
     container.bind(UpdateMedicalRecordUseCase).toSelf().inRequestScope();
+    container.bind(GetPatientHistoryByDuiUseCase).toSelf().inRequestScope();
   }
 }

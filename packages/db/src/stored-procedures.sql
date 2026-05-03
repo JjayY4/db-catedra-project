@@ -1,9 +1,8 @@
 -- =============================================================================
 -- Stored Procedures — Sistema de Citas Medicas
--- Spec: agent-os/specs/capa-datos/procedimientos-almacenados
 --
 -- Convenciones:
---   * Las identificadores de tablas/columnas son case-sensitive (PascalCase
+--   * Los identificadores de tablas/columnas son case-sensitive (PascalCase
 --     y camelCase) por lo que SIEMPRE se citan con comillas dobles.
 --   * Los SP de solo lectura se exponen como FUNCTIONS RETURNS TABLE para
 --     poder consumirlos via `SELECT * FROM fn(...)` desde Drizzle.
@@ -16,11 +15,9 @@
 -- sp_get_available_slots(p_date)
 --
 -- Devuelve los ScheduleEvents disponibles (availabilityStatus = 'available'
--- y eventType = 'appointment') para una fecha dada, ordenados por hora de
--- inicio. Read-only: implementado como funcion RETURNS TABLE.
+-- y eventType = 'appointment') para una fecha dada, ordenados por hora.
 --
--- Uso:
---   SELECT * FROM sp_get_available_slots('2026-04-28');
+-- Uso: SELECT * FROM sp_get_available_slots('2026-05-10');
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_get_available_slots(p_date DATE)
 RETURNS TABLE (
@@ -29,9 +26,7 @@ RETURNS TABLE (
   "startTime" TIME,
   "endTime"   TIME
 )
-LANGUAGE plpgsql
-STABLE
-AS $$
+LANGUAGE plpgsql STABLE AS $$
 BEGIN
   RETURN QUERY
     SELECT
@@ -49,40 +44,85 @@ $$;
 
 
 -- -----------------------------------------------------------------------------
+-- sp_book_appointment(p_event_id, p_patient_dui, p_booking_reason, p_audit_user_id)
+--
+-- Reserva una cita sobre un slot existente y disponible. Pasos:
+--   1. Valida que el evento existe, es de tipo 'appointment' y esta 'available'.
+--   2. Registra quien realizo la reserva (auditUserId).
+--   3. Inserta MedicalAppointments → trg_block_event_on_appointment cambia el
+--      estado del evento a 'pending' automaticamente.
+--
+-- Uso: CALL sp_book_appointment('<event-uuid>', '01234567-8', 'Consulta general', '<user-uuid>');
+-- -----------------------------------------------------------------------------
+CREATE OR REPLACE PROCEDURE sp_book_appointment(
+  p_event_id       UUID,
+  p_patient_dui    VARCHAR,
+  p_booking_reason VARCHAR,
+  p_audit_user_id  UUID
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+  v_event_type        "event_type";
+  v_availability      "availability_status";
+BEGIN
+  SELECT se."eventType", se."availabilityStatus"
+    INTO v_event_type, v_availability
+  FROM "ScheduleEvents" se
+  WHERE se.id = p_event_id;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Slot no encontrado: %', p_event_id
+      USING ERRCODE = 'P0002';
+  END IF;
+
+  IF v_event_type <> 'appointment' THEN
+    RAISE EXCEPTION 'El evento % no es un slot de cita', p_event_id
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  IF v_availability <> 'available' THEN
+    RAISE EXCEPTION 'El slot % no esta disponible (estado actual: %)', p_event_id, v_availability
+      USING ERRCODE = 'P0001';
+  END IF;
+
+  UPDATE "ScheduleEvents"
+    SET "auditUserId" = p_audit_user_id
+  WHERE id = p_event_id;
+
+  INSERT INTO "MedicalAppointments" (id, "eventId", "patientDui", "bookingReason", "bookedAt")
+  VALUES (gen_random_uuid(), p_event_id, p_patient_dui, p_booking_reason, NOW());
+
+EXCEPTION
+  WHEN OTHERS THEN RAISE;
+END;
+$$;
+
+
+-- -----------------------------------------------------------------------------
 -- sp_cancel_appointment(p_appointment_id, p_cancelled_by)
 --
--- Cancela una cita medica de forma transaccional. Pasos:
---   1. Resuelve el ScheduleEvent vinculado al appointment.
---   2. Verifica que el evento NO este en estado 'completed'. Si lo esta,
---      lanza una excepcion y revierte todo.
---   3. Marca el ScheduleEvent como 'cancelled' y registra auditUserId.
---   4. Inserta un WhatsAppMessage de tipo 'cancellation' al telefono del
---      paciente.
+-- Cancela una cita de forma transaccional. Pasos:
+--   1. Resuelve el evento vinculado y valida que exista.
+--   2. Verifica que el evento no este en estado 'completed'.
+--   3. Registra quien cancelo (auditUserId).
+--   4. Elimina la fila de MedicalAppointments → trg_free_event_on_appointment_cancel
+--      devuelve el slot a 'available' automaticamente.
 --
--- Cualquier fallo dentro del bloque BEGIN/EXCEPTION/END produce rollback
--- atomico y re-emite el error original al cliente.
---
--- Uso:
---   CALL sp_cancel_appointment('<uuid-cita>', '<uuid-usuario>');
+-- Uso: CALL sp_cancel_appointment('<appointment-uuid>', '<user-uuid>');
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE sp_cancel_appointment(
   p_appointment_id UUID,
   p_cancelled_by   UUID
 )
-LANGUAGE plpgsql
-AS $$
+LANGUAGE plpgsql AS $$
 DECLARE
-  v_event_id           UUID;
-  v_current_status     "availability_status";
-  v_destination_phone  VARCHAR(20);
-  v_first_name         VARCHAR(100);
+  v_event_id      UUID;
+  v_event_status  "availability_status";
 BEGIN
-  -- Resolver el evento y datos del paciente asociados a la cita.
-  SELECT ma."eventId", se."availabilityStatus", p."whatsappPhone", p."firstName"
-    INTO v_event_id, v_current_status, v_destination_phone, v_first_name
+  SELECT ma."eventId", se."availabilityStatus"
+    INTO v_event_id, v_event_status
   FROM "MedicalAppointments" ma
-  JOIN "ScheduleEvents" se ON se.id  = ma."eventId"
-  JOIN "Patients"       p  ON p.dui = ma."patientDui"
+  JOIN "ScheduleEvents" se ON se.id = ma."eventId"
   WHERE ma.id = p_appointment_id;
 
   IF NOT FOUND THEN
@@ -90,39 +130,19 @@ BEGIN
       USING ERRCODE = 'P0002';
   END IF;
 
-  -- Regla de negocio: no se puede cancelar una cita ya completada.
-  IF v_current_status = 'completed' THEN
+  IF v_event_status = 'completed' THEN
     RAISE EXCEPTION 'La cita ya fue completada y no puede cancelarse'
       USING ERRCODE = 'P0001';
   END IF;
 
-  -- Marcar evento como cancelado + auditoria.
   UPDATE "ScheduleEvents"
-    SET "availabilityStatus" = 'cancelled',
-        "auditUserId"        = p_cancelled_by
+    SET "auditUserId" = p_cancelled_by
   WHERE id = v_event_id;
 
-  -- Registrar el mensaje de cancelacion (auditoria de comunicacion).
-  INSERT INTO "WhatsAppMessages" (
-    "appointmentId",
-    "destinationPhone",
-    "messageType",
-    "messageBody",
-    "deliveryStatus"
-  ) VALUES (
-    p_appointment_id,
-    v_destination_phone,
-    'cancellation',
-    'Hola ' || v_first_name || ', tu cita ha sido cancelada.',
-    'sent'
-  );
+  DELETE FROM "MedicalAppointments" WHERE id = p_appointment_id;
 
 EXCEPTION
-  WHEN OTHERS THEN
-    -- Re-emite el error: PostgreSQL revierte el bloque automaticamente y
-    -- Drizzle propaga la excepcion como error de JS para que el repositorio
-    -- la convierta en AppError.
-    RAISE;
+  WHEN OTHERS THEN RAISE;
 END;
 $$;
 
@@ -132,16 +152,12 @@ $$;
 --                          p_diagnosis, p_treatment, p_notes)
 --
 -- Cierra una consulta medica de forma atomica. Pasos:
---   1. Resuelve la cadena MedicalAppointments -> Patients -> MedicalRecords
---      para obtener el recordId.
+--   1. Resuelve eventId y recordId via MedicalAppointments → Patients → MedicalRecords.
 --   2. Inserta el registro clinico en ClinicalConsultations.
---   3. Marca el ScheduleEvent vinculado como 'completed'.
+--   3. Marca el ScheduleEvent como 'completed'.
 --
--- Si cualquier paso falla, el bloque BEGIN/EXCEPTION/END deshace todo.
---
--- Uso:
---   CALL sp_complete_consultation('<uuid>', 'sintomas', '120/80', 70.5,
---                                 'diagnostico', 'tratamiento', 'notas');
+-- Uso: CALL sp_complete_consultation('<uuid>', 'sintomas', '120/80', 70.5,
+--                                    'diagnostico', 'tratamiento', 'notas');
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE PROCEDURE sp_complete_consultation(
   p_appointment_id UUID,
@@ -152,14 +168,11 @@ CREATE OR REPLACE PROCEDURE sp_complete_consultation(
   p_treatment      TEXT,
   p_notes          TEXT
 )
-LANGUAGE plpgsql
-AS $$
+LANGUAGE plpgsql AS $$
 DECLARE
   v_event_id  UUID;
   v_record_id UUID;
 BEGIN
-  -- Resolver eventId y recordId via la cadena
-  -- MedicalAppointments -> Patients -> MedicalRecords.
   SELECT ma."eventId", mr.id
     INTO v_event_id, v_record_id
   FROM "MedicalAppointments" ma
@@ -168,40 +181,26 @@ BEGIN
   WHERE ma.id = p_appointment_id;
 
   IF NOT FOUND THEN
-    RAISE EXCEPTION 'Cita o expediente medico no encontrado para appointmentId: %',
-                    p_appointment_id
+    RAISE EXCEPTION 'Cita o expediente medico no encontrado: %', p_appointment_id
       USING ERRCODE = 'P0002';
   END IF;
 
-  -- Insertar el registro clinico de la consulta.
   INSERT INTO "ClinicalConsultations" (
-    "recordId",
-    "appointmentId",
-    "presentedSymptoms",
-    "bloodPressure",
-    "weightKg",
-    "mainDiagnosis",
-    "prescribedTreatment",
-    "doctorPrivateNotes"
+    id, "recordId", "appointmentId",
+    "presentedSymptoms", "bloodPressure", "weightKg",
+    "mainDiagnosis", "prescribedTreatment", "doctorPrivateNotes"
   ) VALUES (
-    v_record_id,
-    p_appointment_id,
-    p_symptoms,
-    p_bp,
-    p_weight,
-    p_diagnosis,
-    p_treatment,
-    p_notes
+    gen_random_uuid(), v_record_id, p_appointment_id,
+    p_symptoms, p_bp, p_weight,
+    p_diagnosis, p_treatment, p_notes
   );
 
-  -- Cerrar el slot del schedule.
   UPDATE "ScheduleEvents"
     SET "availabilityStatus" = 'completed'
   WHERE id = v_event_id;
 
 EXCEPTION
-  WHEN OTHERS THEN
-    RAISE;
+  WHEN OTHERS THEN RAISE;
 END;
 $$;
 
@@ -209,19 +208,13 @@ $$;
 -- -----------------------------------------------------------------------------
 -- sp_get_patient_history(p_dui)
 --
--- Combina los datos de PatientFullRecordView (datos demograficos +
--- expediente clinico) con TODAS las ClinicalConsultations del paciente,
--- ordenadas por fecha de consulta descendente (mas recientes primero).
+-- Retorna el historial completo del paciente: datos demograficos + expediente
+-- + todas las consultas clinicas ordenadas por fecha descendente.
 --
--- Read-only: implementado como funcion RETURNS TABLE para consumir via
--- `SELECT * FROM sp_get_patient_history(...)`.
---
--- Uso:
---   SELECT * FROM sp_get_patient_history('01234567-8');
+-- Uso: SELECT * FROM sp_get_patient_history('01234567-8');
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_get_patient_history(p_dui VARCHAR)
 RETURNS TABLE (
-  -- Datos del paciente (vienen de PatientFullRecordView).
   "dui"                 VARCHAR(10),
   "firstName"           VARCHAR(100),
   "lastName"            VARCHAR(100),
@@ -235,20 +228,17 @@ RETURNS TABLE (
   "familyHistory"       TEXT,
   "chronicConditions"   TEXT,
   "recordOpenedAt"      DATE,
-  -- Datos por consulta (una fila por ClinicalConsultation).
   "consultationId"      UUID,
-  "consultationDate"    TIMESTAMP,
+  "consultationDate"    TIMESTAMP WITH TIME ZONE,
   "appointmentId"       UUID,
   "presentedSymptoms"   TEXT,
   "bloodPressure"       VARCHAR(20),
-  "weightKg"            NUMERIC(5, 2),
+  "weightKg"            NUMERIC(5,2),
   "mainDiagnosis"       TEXT,
   "prescribedTreatment" TEXT,
   "doctorPrivateNotes"  TEXT
 )
-LANGUAGE plpgsql
-STABLE
-AS $$
+LANGUAGE plpgsql STABLE AS $$
 BEGIN
   RETURN QUERY
     SELECT
@@ -265,8 +255,8 @@ BEGIN
       pfv."familyHistory",
       pfv."chronicConditions",
       pfv."recordOpenedAt",
-      cc.id              AS "consultationId",
-      ma."bookedAt"      AS "consultationDate",
+      cc.id                AS "consultationId",
+      ma."bookedAt"        AS "consultationDate",
       cc."appointmentId",
       cc."presentedSymptoms",
       cc."bloodPressure",
@@ -275,8 +265,8 @@ BEGIN
       cc."prescribedTreatment",
       cc."doctorPrivateNotes"
     FROM "PatientFullRecordView" pfv
-    LEFT JOIN "ClinicalConsultations" cc ON cc."recordId"      = pfv."recordId"
-    LEFT JOIN "MedicalAppointments"   ma ON ma.id              = cc."appointmentId"
+    LEFT JOIN "ClinicalConsultations" cc ON cc."recordId"   = pfv."recordId"
+    LEFT JOIN "MedicalAppointments"   ma ON ma.id           = cc."appointmentId"
     WHERE pfv."dui" = p_dui
     ORDER BY ma."bookedAt" DESC NULLS LAST;
 END;
@@ -286,13 +276,10 @@ $$;
 -- -----------------------------------------------------------------------------
 -- sp_check_availability(p_date)
 --
--- Retorna todos los slots de cita disponibles para una fecha dada.
+-- Retorna todos los slots disponibles para una fecha, incluyendo doctorId.
+-- Complementa sp_get_available_slots cuando se necesita filtrar por medico.
 --
--- Read-only: implementado como funcion RETURNS TABLE para consumir via
--- `SELECT * FROM sp_check_availability(...)`.
---
--- Uso:
---   SELECT * FROM sp_check_availability('2025-06-01');
+-- Uso: SELECT * FROM sp_check_availability('2026-05-10');
 -- -----------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION sp_check_availability(p_date DATE)
 RETURNS TABLE (
@@ -302,19 +289,19 @@ RETURNS TABLE (
   start_time TIME,
   end_time   TIME
 )
-LANGUAGE plpgsql AS $$
+LANGUAGE plpgsql STABLE AS $$
 BEGIN
   RETURN QUERY
-  SELECT
-    se.id,
-    se."doctorId",
-    se."eventDate",
-    se."startTime",
-    se."endTime"
-  FROM "ScheduleEvents" se
-  WHERE se."eventDate" = p_date
-    AND se."eventType" = 'appointment'
-    AND se."availabilityStatus" = 'available'
-  ORDER BY se."startTime";
+    SELECT
+      se.id,
+      se."doctorId",
+      se."eventDate",
+      se."startTime",
+      se."endTime"
+    FROM "ScheduleEvents" se
+    WHERE se."eventDate"          = p_date
+      AND se."eventType"          = 'appointment'
+      AND se."availabilityStatus" = 'available'
+    ORDER BY se."startTime" ASC;
 END;
 $$;

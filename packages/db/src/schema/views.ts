@@ -16,21 +16,21 @@ export const DailyScheduleView = pgView('DailyScheduleView', {
   whatsappPhone:      varchar('whatsappPhone', { length: 20 }),
 }).as(sql`
   SELECT
-    se.id                 AS "eventId",
+    se.id                   AS "eventId",
     se."doctorId",
     se."eventDate",
     se."startTime",
     se."endTime",
     se."availabilityStatus",
-    ma.id                 AS "appointmentId",
+    ma.id                   AS "appointmentId",
     ma."bookingReason",
-    p.dui                 AS "patientDui",
+    p.dui                   AS "patientDui",
     p."firstName",
     p."lastName",
     p."whatsappPhone"
   FROM "ScheduleEvents" se
   LEFT JOIN "MedicalAppointments" ma ON ma."eventId" = se.id
-  LEFT JOIN "Patients" p             ON p.dui = ma."patientDui"
+  LEFT JOIN "Patients"            p  ON p.dui        = ma."patientDui"
   WHERE se."eventType" = 'appointment'
 `)
 
@@ -51,7 +51,7 @@ export const PatientFullRecordView = pgView('PatientFullRecordView', {
   lastConsultationId: uuid('lastConsultationId'),
   lastDiagnosis:      text('lastDiagnosis'),
   lastTreatment:      text('lastTreatment'),
-  lastVisitDate:      timestamp('lastVisitDate'),
+  lastVisitDate:      timestamp('lastVisitDate', { withTimezone: true }),
 }).as(sql`
   SELECT
     p.dui,
@@ -61,18 +61,18 @@ export const PatientFullRecordView = pgView('PatientFullRecordView', {
     p."whatsappPhone",
     mi."insurerName",
     mi."coverageType",
-    mr.id                      AS "recordId",
+    mr.id                       AS "recordId",
     mr."bloodType",
     mr."knownAllergies",
     mr."familyHistory",
     mr."chronicConditions",
-    mr."openedAt"              AS "recordOpenedAt",
-    cc.id                      AS "lastConsultationId",
-    cc."mainDiagnosis"         AS "lastDiagnosis",
-    cc."prescribedTreatment"   AS "lastTreatment",
-    ma."bookedAt"              AS "lastVisitDate"
+    mr."openedAt"               AS "recordOpenedAt",
+    cc.id                       AS "lastConsultationId",
+    cc."mainDiagnosis"          AS "lastDiagnosis",
+    cc."prescribedTreatment"    AS "lastTreatment",
+    ma."bookedAt"               AS "lastVisitDate"
   FROM "Patients" p
-  LEFT JOIN "MedicalInsurances" mi ON mi.id = p."insuranceId"
+  LEFT JOIN "MedicalInsurances" mi ON mi.id          = p."insuranceId"
   LEFT JOIN "MedicalRecords"    mr ON mr."patientDui" = p.dui
   LEFT JOIN LATERAL (
     SELECT cc.*, ma."bookedAt"

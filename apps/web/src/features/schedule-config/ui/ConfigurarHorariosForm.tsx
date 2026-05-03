@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useForm, Controller, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { clientApi } from '@/shared/api/client'
 import {
   generateScheduleInputSchema,
@@ -24,6 +25,8 @@ import {
 } from '@/components/ui/table'
 import { TimePicker } from '@/components/ui/time-picker'
 import { cn } from '@/lib/utils'
+
+const MAX_WEEKS = 4
 
 const DAYS = [
   { value: 1, label: 'Lunes' },
@@ -106,17 +109,20 @@ function nowPlus30Rounded(): string {
 }
 
 export function ConfigurarHorariosForm() {
+  const [weekOffset, setWeekOffset]   = useState(0)
   const [previewState, setPreviewState] = useState<PreviewScheduleOutput | null>(null)
   const [feedback, setFeedback] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
   const [isPreviewing, startPreview] = useTransition()
   const [isConfirming, startConfirm] = useTransition()
 
-  const monday = useMemo(mondayOfCurrentWeek, [])
   const today  = useMemo(startOfTodayUtc, [])
+  const monday = useMemo(() => addDays(mondayOfCurrentWeek(), weekOffset * 7), [weekOffset])
   const sunday = useMemo(() => addDays(monday, 6), [monday])
 
-  const isPastDay = (dayValue: number): boolean =>
-    addDays(monday, offsetForDay(dayValue)) < today
+  const isPastDay = (dayValue: number): boolean => {
+    if (weekOffset > 0) return false
+    return addDays(monday, offsetForDay(dayValue)) < today
+  }
 
   const { register, handleSubmit, control, getValues, setValue, formState: { errors } } = useForm<GenerateScheduleInput>({
     resolver: zodResolver(generateScheduleInputSchema),
@@ -125,24 +131,28 @@ export function ConfigurarHorariosForm() {
       startTime:     '08:00',
       endTime:       '12:00',
       slotDuration:  30,
-      weekStartDate: isoDate(monday),
+      weekStartDate: isoDate(mondayOfCurrentWeek()),
     },
   })
+
+  function changeWeek(offset: number) {
+    setWeekOffset(offset)
+    setValue('selectedDays', [])
+    setValue('weekStartDate', isoDate(addDays(mondayOfCurrentWeek(), offset * 7)))
+    setPreviewState(null)
+    setFeedback(null)
+  }
 
   const watchedSelectedDays = useWatch({ control, name: 'selectedDays' })
   const watchedStartTime    = useWatch({ control, name: 'startTime' })
 
   const todayWeekDay = useMemo(() => new Date().getDay(), [])
-  const todayInRange = useMemo(
-    () => addDays(monday, offsetForDay(todayWeekDay)) >= today,
-    [monday, todayWeekDay, today],
-  )
 
   const minStartTime = useMemo<string | undefined>(() => {
-    if (!todayInRange) return undefined
+    if (weekOffset > 0) return undefined
     if (!watchedSelectedDays?.includes(todayWeekDay)) return undefined
     return nowPlus30Rounded()
-  }, [todayInRange, watchedSelectedDays, todayWeekDay])
+  }, [weekOffset, watchedSelectedDays, todayWeekDay])
 
   useEffect(() => {
     if (minStartTime && watchedStartTime < minStartTime) {
@@ -212,11 +222,34 @@ export function ConfigurarHorariosForm() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onPreviewSubmit)} className="space-y-5">
-            <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm">
-              <span className="font-medium">Semana seleccionada: </span>
-              <span className="text-muted-foreground">
-                {formatLong(monday)} – {formatLong(sunday)}
+            <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-2 py-1 text-sm">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                disabled={weekOffset === 0}
+                onClick={() => changeWeek(weekOffset - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="flex-1 text-center font-medium">
+                {weekOffset === 0 ? 'Semana actual' : `Semana +${weekOffset}`}
+                {' · '}
+                <span className="text-muted-foreground font-normal">
+                  {formatLong(monday)} – {formatLong(sunday)}
+                </span>
               </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 shrink-0"
+                disabled={weekOffset === MAX_WEEKS}
+                onClick={() => changeWeek(weekOffset + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
 
             <div className="space-y-2">

@@ -6,10 +6,10 @@ interface SqlExecutor {
 
 // Drizzle has no native trigger builder — triggers are expressed as raw DDL
 // executed via db.execute(sql`...`). Each statement is separated because
-// pg driver does not support multi-statement strings in a single execute call.
+// the pg driver does not support multi-statement strings in a single execute call.
 
 const triggerStatements = [
-  // Trigger 1: auto-create MedicalRecord when Patient is inserted
+  // Trigger 1: auto-create MedicalRecord when a Patient is inserted
   sql`
     CREATE OR REPLACE FUNCTION fn_create_medical_record_on_patient()
     RETURNS TRIGGER AS $$
@@ -28,7 +28,7 @@ const triggerStatements = [
       EXECUTE FUNCTION fn_create_medical_record_on_patient()
   `,
 
-  // Trigger 2: mark ScheduleEvent as pending when appointment is booked
+  // Trigger 2: mark ScheduleEvent as 'pending' when an appointment is booked
   sql`
     CREATE OR REPLACE FUNCTION fn_block_event_on_appointment()
     RETURNS TRIGGER AS $$
@@ -46,6 +46,26 @@ const triggerStatements = [
       AFTER INSERT ON "MedicalAppointments"
       FOR EACH ROW
       EXECUTE FUNCTION fn_block_event_on_appointment()
+  `,
+
+  // Trigger 3: free ScheduleEvent slot back to 'available' when an appointment is deleted (cancelled)
+  sql`
+    CREATE OR REPLACE FUNCTION fn_free_event_on_appointment_cancel()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      UPDATE "ScheduleEvents"
+      SET "availabilityStatus" = 'available'
+      WHERE id = OLD."eventId";
+      RETURN OLD;
+    END;
+    $$ LANGUAGE plpgsql
+  `,
+  sql`DROP TRIGGER IF EXISTS trg_free_event_on_appointment_cancel ON "MedicalAppointments"`,
+  sql`
+    CREATE TRIGGER trg_free_event_on_appointment_cancel
+      AFTER DELETE ON "MedicalAppointments"
+      FOR EACH ROW
+      EXECUTE FUNCTION fn_free_event_on_appointment_cancel()
   `,
 ]
 

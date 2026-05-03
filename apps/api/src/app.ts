@@ -15,6 +15,7 @@ import { agendaRoutes } from './modules/receptionist-agenda/presentation/recepti
 import { doctorScheduleRoutes } from './modules/doctor-schedule/presentation/doctor-schedule.routes'
 import { doctorAgendaRoutes } from './modules/doctor-agenda/presentation/doctor-agenda.routes'
 import { medicalRecordsRoutes } from './modules/medical-records/presentation/medical-records.routes'
+import { reportsRoutes } from './modules/reports/presentation/reports.routes'
 // <ROUTES_IMPORTS_END>
 
 export const app = new Elysia({ adapter: BunAdapter })
@@ -53,6 +54,7 @@ export const app = new Elysia({ adapter: BunAdapter })
   .use(doctorScheduleRoutes)
   .use(doctorAgendaRoutes)
   .use(medicalRecordsRoutes)
+  .use(reportsRoutes)
   // <ROUTES_REGISTRATION_END>
 
 export type App = typeof app

@@ -10,6 +10,7 @@ import { ReceptionistScheduleModule } from "~/modules/receptionist-schedule/rece
 import { DoctorScheduleModule } from '~/modules/doctor-schedule/doctor-schedule.module'
 import { DoctorAgendaModule } from '~/modules/doctor-agenda/doctor-agenda.module'
 import { MedicalRecordsModule } from "~/modules/medical-records/medical-records.module";
+import { ReportsModule } from "~/modules/reports/reports.module";
 // <MODULES_IMPORTS_END>
 
 const kernel = ApplicationKernel.getInstance([
@@ -23,6 +24,7 @@ const kernel = ApplicationKernel.getInstance([
   new DoctorScheduleModule(),
   new DoctorAgendaModule(),
   new MedicalRecordsModule(),
+  new ReportsModule(),
   // <MODULES_REGISTRATION_END>
 ]);
 

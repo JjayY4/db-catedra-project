@@ -10,6 +10,7 @@ import { RegisterPatientUseCase } from './application/usecases/register-patient.
 import { CreateInsuranceUseCase } from './application/usecases/create-insurance.usecase'
 import { UpdateInsuranceUseCase } from './application/usecases/update-insurance.usecase'
 import { DeleteInsuranceUseCase } from './application/usecases/delete-insurance.usecase'
+import { GetPatientProfileUseCase } from './application/usecases/get-patient-profile.usecase'
 
 export class PatientsModule implements AppModule {
   load(container: Container): void {
@@ -22,5 +23,6 @@ export class PatientsModule implements AppModule {
     container.bind(CreateInsuranceUseCase).toSelf().inRequestScope()
     container.bind(UpdateInsuranceUseCase).toSelf().inRequestScope()
     container.bind(DeleteInsuranceUseCase).toSelf().inRequestScope()
+    container.bind(GetPatientProfileUseCase).toSelf().inRequestScope()
   }
 }

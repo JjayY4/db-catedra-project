@@ -68,11 +68,9 @@ export function EditarAseguradoraDialog({ insurance }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setError(null) }}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-          <Pencil className="h-3.5 w-3.5" />
-          <span className="sr-only">Editar</span>
-        </Button>
+      <DialogTrigger render={<Button size="sm" variant="ghost" className="h-8 w-8 p-0" />}>
+        <Pencil className="h-3.5 w-3.5" />
+        <span className="sr-only">Editar</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>

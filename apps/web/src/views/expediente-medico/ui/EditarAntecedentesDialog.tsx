@@ -64,11 +64,9 @@ export function EditarAntecedentesDialog({ recordId, bloodType, knownAllergies, 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm" variant="outline" className="gap-1.5">
-          <Pencil className="h-3.5 w-3.5" />
-          Editar antecedentes
-        </Button>
+      <DialogTrigger render={<Button size="sm" variant="outline" className="gap-1.5" />}>
+        <Pencil className="h-3.5 w-3.5" />
+        Editar antecedentes
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -77,7 +75,7 @@ export function EditarAntecedentesDialog({ recordId, bloodType, knownAllergies, 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           <div className="space-y-1.5">
             <Label>Tipo de sangre</Label>
-            <Select value={bt} onValueChange={setBt}>
+            <Select value={bt} onValueChange={(v) => setBt(v ?? '')}>
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar" />
               </SelectTrigger>

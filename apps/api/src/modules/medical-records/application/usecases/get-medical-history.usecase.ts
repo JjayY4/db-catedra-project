@@ -1,6 +1,8 @@
 import { injectable, inject } from "inversify";
+import { eq } from "drizzle-orm";
 import { IMedicalRecordsRepository } from "../../domain/interfaces/medical-records.repository";
 import { db } from "@project/db/src/client";
+import { MedicalRecords } from "@project/db/src/schema/medical-records.schema";
 
 @injectable()
 export class GetMedicalHistoryUseCase {
@@ -10,12 +12,19 @@ export class GetMedicalHistoryUseCase {
   ) {}
 
   async execute(recordId: string) {
-    const history = await db.transaction(async (tx) => {
-      return await this.repository.getConsultationsByRecordId(recordId, tx);
-    });
+    return await db.transaction(async (tx) => {
+      const [background] = await tx
+        .select()
+        .from(MedicalRecords)
+        .where(eq(MedicalRecords.id, recordId))
+        .limit(1);
 
-    return history.sort((a, b) => {
-        return b.id.localeCompare(a.id); 
+      const consultations = await this.repository.getConsultationsByRecordId(recordId, tx);
+
+      return {
+        background: background ?? null,
+        consultations: consultations.sort((a, b) => b.id.localeCompare(a.id)),
+      };
     });
   }
 }

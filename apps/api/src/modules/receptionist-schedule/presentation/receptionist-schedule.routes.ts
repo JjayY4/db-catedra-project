@@ -8,6 +8,8 @@ import { GetScheduleEventUseCase } from "../application/usecases/get-schedule-ev
 import { CreateBlockInputSchema } from "../application/dtos/inputs/create-block.input";
 import { ScheduleEventListOutputSchema } from "../application/dtos/outputs/schedule-event.output";
 import { AvailableSlotOutputSchema } from "../application/dtos/outputs/available-slot.output";
+import { GetSlotsByDateUseCase } from "../application/usecases/get-slots-by-date.usecase";
+import { CheckAvailabilityUseCase } from "../application/usecases/check-availability.usecase";
 
 export const scheduleEventsRoutes = createRouter({ prefix: "/schedule-events" })
   .use(betterAuthPlugin)
@@ -46,6 +48,22 @@ export const scheduleEventsRoutes = createRouter({ prefix: "/schedule-events" })
         date_to:   t.String(),
       }),
       response: t.Array(AvailableSlotOutputSchema),
+    },
+  )
+  .get(
+    "/slots",
+    ({ container, query }) => container.get(GetSlotsByDateUseCase).execute(query.date),
+    {
+      query:  t.Object({ date: t.String() }),
+      roles:  ["receptionist", "doctor"],
+    },
+  )
+  .get(
+    "/check-availability",
+    ({ container, query }) => container.get(CheckAvailabilityUseCase).execute(query.date),
+    {
+      query:  t.Object({ date: t.String() }),
+      roles:  ["receptionist", "doctor"],
     },
   )
   .get(

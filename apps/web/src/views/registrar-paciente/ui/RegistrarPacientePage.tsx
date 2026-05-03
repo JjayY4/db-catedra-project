@@ -21,7 +21,7 @@ interface Props {
 export async function RegistrarPacientePage({ page }: Props) {
   const api = await createServerApi()
   const { data, error } = await api.patients.get({
-    query: { page: String(page), pageSize: String(PAGE_SIZE) },
+    query: { page: String(page), pageSize: String(PAGE_SIZE) } as any,
     fetch: { cache: 'no-store' },
   })
 

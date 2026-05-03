@@ -17,11 +17,9 @@ export function NuevoPacienteDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Nuevo paciente
-        </Button>
+      <DialogTrigger render={<Button size="sm" />}>
+        <UserPlus className="h-4 w-4 mr-2" />
+        Nuevo paciente
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>

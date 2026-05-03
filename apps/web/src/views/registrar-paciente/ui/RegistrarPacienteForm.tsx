@@ -58,7 +58,6 @@ export function RegistrarPacienteForm({ onSuccess }: Props) {
 
   function onSubmit(values: RegisterPatientValues) {
     setServerError(null)
-    setSuccessMsg(null)
     startTransition(async () => {
       const { error, data } = await clientApi.patients.register.post({
         email:       values.email,

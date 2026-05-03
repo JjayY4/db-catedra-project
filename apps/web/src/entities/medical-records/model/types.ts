@@ -1,3 +1,5 @@
+import type { MedicalRecord } from '@/entities/medical-record/model/types'
+
 export interface ClinicalConsultation {
   id: string
   recordId: string
@@ -12,5 +14,8 @@ export interface ClinicalConsultation {
 
 export interface MedicalHistoryResponse {
   success: boolean
-  data: ClinicalConsultation[]
+  data: {
+    background: MedicalRecord | null
+    consultations: ClinicalConsultation[]
+  }
 }

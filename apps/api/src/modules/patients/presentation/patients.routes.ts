@@ -14,6 +14,7 @@ import { InsuranceOutputSchema } from '../application/dtos/outputs/insurance.out
 import { ListPatientsUseCase } from '../application/usecases/list-patients.usecase'
 import { RegisterPatientUseCase } from '../application/usecases/register-patient.usecase'
 import { RegisterPatientInputSchema } from '../application/dtos/inputs/register-patient.input'
+import { GetPatientProfileUseCase } from '../application/usecases/get-patient-profile.usecase'
 
 export const patientsRoutes = createRouter({ prefix: '/patients' })
   .get(
@@ -74,6 +75,14 @@ export const patientsRoutes = createRouter({ prefix: '/patients' })
       body:     CompleteProfileInputSchema,
       response: PatientOutputSchema,
       auth:     true,
+    },
+  )
+  .get(
+    '/:dui/profile',
+    ({ container, params }) => container.get(GetPatientProfileUseCase).execute(params.dui),
+    {
+      roles:  ['doctor', 'receptionist'],
+      params: t.Object({ dui: t.String() }),
     },
   )
   .post(

@@ -6,6 +6,8 @@ import { GetAvailableSlotsUseCase } from "./application/usecases/get-available-s
 import { GetScheduleEventUseCase } from "./application/usecases/get-schedule-event.usecase";
 import { CreateBlockUseCase } from "./application/usecases/create-block.usecase";
 import { DeleteBlockUseCase } from "./application/usecases/delete-block.usecase";
+import { GetSlotsByDateUseCase } from "./application/usecases/get-slots-by-date.usecase";
+import { CheckAvailabilityUseCase } from "./application/usecases/check-availability.usecase";
 
 export class ReceptionistScheduleModule implements AppModule {
   load(container: Container): void {
@@ -17,5 +19,7 @@ export class ReceptionistScheduleModule implements AppModule {
     container.bind(GetScheduleEventUseCase).toSelf().inRequestScope();
     container.bind(CreateBlockUseCase).toSelf().inRequestScope();
     container.bind(DeleteBlockUseCase).toSelf().inRequestScope();
+    container.bind(GetSlotsByDateUseCase).toSelf().inRequestScope();
+    container.bind(CheckAvailabilityUseCase).toSelf().inRequestScope();
   }
 }
