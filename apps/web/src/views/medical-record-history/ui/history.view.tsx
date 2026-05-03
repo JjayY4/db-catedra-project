@@ -8,12 +8,20 @@ interface Props {
 
 export default async function MedicalRecordHistoryView({ recordId }: Props) {
   const api = await createServerApi()
-  const { data, error } = await (api['medical-records'] as any)({ id: recordId }).history.get()
+  const { data, error } = await (api['medical-records'] as any)({ id: recordId }).history.get({
+    fetch: { cache: 'no-store' },
+  })
 
   if (error || !data) {
     return (
       <div className="p-4 border border-red-500 bg-red-50 text-red-700 rounded-md">
         <p className="font-bold">Error cargando el historial.</p>
+        {error && (
+          <>
+            <p className="text-sm mt-1">Status: {error.status}</p>
+            <p className="text-sm">Detalle: {JSON.stringify(error.value)}</p>
+          </>
+        )}
       </div>
     );
   }

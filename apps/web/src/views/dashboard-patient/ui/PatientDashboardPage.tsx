@@ -24,9 +24,10 @@ export async function PatientDashboardPage({ user }: PatientDashboardPageProps) 
     redirect('/complete-profile')
   }
 
-  const { data: appointmentsData } = await api.appointments.my.get({
-    query: { page: '1', pageSize: '3' },
-  })
+  const [{ data: appointmentsData }, { data: profile }] = await Promise.all([
+    api.appointments.my.get({ query: { page: '1', pageSize: '3' } }),
+    api.patients.profile.get({ query: { dui: patient.dui } }),
+  ])
 
   const upcoming = appointmentsData?.upcoming ?? []
 
@@ -36,6 +37,22 @@ export async function PatientDashboardPage({ user }: PatientDashboardPageProps) 
         <p className="text-xs font-semibold uppercase tracking-widest text-primary">Paciente</p>
         <h1>Bienvenido, {patient.firstName}</h1>
         <p className="text-muted-foreground">{user.email}</p>
+        {profile?.insurerName && (
+          <p className="text-sm text-muted-foreground">
+            Aseguradora: <span className="font-medium text-foreground">{profile.insurerName}</span>
+            {profile.coverageType && ` — ${profile.coverageType}`}
+          </p>
+        )}
+        {profile?.lastVisitDate && (
+          <p className="text-sm text-muted-foreground">
+            Última visita:{' '}
+            <span className="font-medium text-foreground">
+              {new Date(profile.lastVisitDate).toLocaleDateString('es-ES', {
+                day: '2-digit', month: 'long', year: 'numeric',
+              })}
+            </span>
+          </p>
+        )}
       </header>
 
       {/* Accesos rápidos */}

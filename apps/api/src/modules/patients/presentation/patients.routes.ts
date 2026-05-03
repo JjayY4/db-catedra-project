@@ -78,11 +78,11 @@ export const patientsRoutes = createRouter({ prefix: '/patients' })
     },
   )
   .get(
-    '/:dui/profile',
-    ({ container, params }) => container.get(GetPatientProfileUseCase).execute(params.dui),
+    '/profile',
+    ({ container, query }) => container.get(GetPatientProfileUseCase).execute(query.dui),
     {
-      roles:  ['doctor', 'receptionist'],
-      params: t.Object({ dui: t.String() }),
+      roles: ['doctor', 'receptionist'],
+      query: t.Object({ dui: t.String() }),
     },
   )
   .post(

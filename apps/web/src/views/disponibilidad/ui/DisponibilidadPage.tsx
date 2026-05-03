@@ -38,6 +38,9 @@ export async function DisponibilidadPage({ fecha, doctorId }: DisponibilidadPage
       : `/disponibilidad?fecha=${f}`
 
   if (!selectedDoctor) {
+    const { data: allSlots } = await api['schedule-events'].slots.get({ query: { date: fecha } })
+    const totalSlots = (allSlots as any[] | null)?.length ?? 0
+
     return (
       <div className="space-y-6">
         <header>
@@ -45,6 +48,9 @@ export async function DisponibilidadPage({ fecha, doctorId }: DisponibilidadPage
           <h1>Selecciona un médico</h1>
           <p className="mt-1 text-muted-foreground">
             Elige al profesional con quien deseas reservar tu cita.
+            {totalSlots > 0 && (
+              <> <span className="font-medium text-foreground">{totalSlots} {totalSlots === 1 ? 'cupo disponible' : 'cupos disponibles'}</span> para esta fecha.</>
+            )}
           </p>
         </header>
         <DoctorPicker

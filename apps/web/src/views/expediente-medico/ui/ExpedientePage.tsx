@@ -21,6 +21,10 @@ export async function ExpedientePage({ appointmentId }: ExpedientePageProps) {
   const api = await createServerApi()
   const { data, error } = await (api['medical-records'] as any)['by-appointment']({ appointmentId }).get()
 
+  const { data: patientHistory } = data?.patientDui
+    ? await api['medical-records']['patient-history']({ dui: data.patientDui }).get()
+    : { data: null }
+
   if (error || !data) {
     return (
       <div className="space-y-4">
@@ -128,18 +132,18 @@ export async function ExpedientePage({ appointmentId }: ExpedientePageProps) {
         </CardContent>
       </Card>
 
-      {/* Consultation history */}
+      {/* Consultation history — sourced from sp_get_patient_history */}
       <Card>
         <CardHeader>
           <CardTitle>Historial de consultas</CardTitle>
         </CardHeader>
         <CardContent>
-          {data.consultations.length === 0 ? (
+          {!patientHistory || (patientHistory as any[]).length === 0 ? (
             <p className="text-sm text-muted-foreground italic">Sin consultas previas.</p>
           ) : (
             <ul className="space-y-4">
-              {data.consultations.map((c: any) => (
-                <li key={c.id} className="rounded-lg border border-border p-4 space-y-1 text-sm">
+              {(patientHistory as any[]).map((c, i) => (
+                <li key={c.consultationId ?? i} className="rounded-lg border border-border p-4 space-y-1 text-sm">
                   <p className="font-semibold">Diagnóstico: {c.mainDiagnosis}</p>
                   {c.presentedSymptoms && (
                     <p className="text-muted-foreground">Síntomas: {c.presentedSymptoms}</p>

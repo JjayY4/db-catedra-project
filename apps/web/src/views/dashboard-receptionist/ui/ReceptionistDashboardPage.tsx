@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CalendarDays, ClipboardList, MessageCircle } from 'lucide-react'
+import { CalendarDays, ClipboardList, MessageCircle, Users, XCircle } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { createServerApi } from '@/shared/api/server'
@@ -14,22 +14,38 @@ export async function ReceptionistDashboardPage({ user }: ReceptionistDashboardP
 
   let totalCitas = 0
   let reservadas = 0
+  let disponibles = 0
+  let frecuentes = 0
+  let canceladas = 0
 
   try {
     const api = await createServerApi()
-    const { data: doctors } = await api.users.doctors.get()
-    const firstDoctor = doctors?.[0]
-    if (firstDoctor) {
-      const { data: agendaItems } = await api.agenda.daily.get({
-        query: { doctor_id: firstDoctor.id, fecha: today },
-      })
-      if (agendaItems) {
-        totalCitas = agendaItems.length
-        reservadas = agendaItems.filter(
-          (item) => item.availabilityStatus === 'busy',
-        ).length
-      }
+
+    const [
+      agendaResult,
+      availabilityResult,
+      frecuentesResult,
+      canceladasResult,
+    ] = await Promise.all([
+      api.users.doctors.get().then(async ({ data: doctors }) => {
+        const first = doctors?.[0]
+        if (!first) return null
+        return api.agenda.daily.get({ query: { doctor_id: first.id, fecha: today } })
+      }),
+      api['schedule-events']['check-availability'].get({ query: { date: today } }),
+      api.reports['frequent-patients'].get(),
+      api.reports['cancelled-per-doctor'].get(),
+    ])
+
+    if (agendaResult?.data) {
+      totalCitas = agendaResult.data.length
+      reservadas = agendaResult.data.filter((i) => i.availabilityStatus === 'busy').length
     }
+    disponibles = (availabilityResult.data as any[] | null)?.length ?? 0
+    frecuentes  = (frecuentesResult.data as any[] | null)?.length ?? 0
+    canceladas  = ((canceladasResult.data as any[] | null) ?? []).reduce(
+      (sum: number, r: any) => sum + (r.cancelledCount ?? 0), 0,
+    )
   } catch {
     // show 0 if API fails
   }
@@ -42,10 +58,15 @@ export async function ReceptionistDashboardPage({ user }: ReceptionistDashboardP
         <p className="text-muted-foreground">Welcome back, {user.email}</p>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard icon={CalendarDays} title="Citas hoy" value={String(totalCitas)} tone="primary" />
-        <StatCard icon={ClipboardList} title="Reservadas hoy" value={String(reservadas)} tone="warning" />
-        <StatCard icon={MessageCircle} title="Disponibles" value={String(totalCitas - reservadas)} tone="secondary" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={CalendarDays}  title="Citas hoy"           value={String(totalCitas)} tone="primary"   />
+        <StatCard icon={ClipboardList} title="Reservadas hoy"      value={String(reservadas)} tone="warning"   />
+        <StatCard icon={MessageCircle} title="Disponibles hoy"     value={String(disponibles)} tone="secondary" />
+        <StatCard icon={Users}         title="Pacientes frecuentes" value={String(frecuentes)} tone="primary"   />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <StatCard icon={XCircle} title="Canceladas este mes" value={String(canceladas)} tone="warning" />
       </div>
 
       <div className="flex flex-wrap gap-3">

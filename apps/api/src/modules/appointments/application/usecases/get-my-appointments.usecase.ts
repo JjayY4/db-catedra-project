@@ -27,6 +27,11 @@ function todayIso(): string {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
 }
 
+// pg may return Date objects for date columns depending on driver/version
+function toDateStr(v: string): string {
+  return typeof v === 'string' ? v.slice(0, 10) : (v as unknown as Date).toISOString().slice(0, 10)
+}
+
 @injectable()
 export class GetMyAppointmentsUseCase extends BaseUseCase<Input, MyAppointmentsOutput> {
   constructor(
@@ -54,10 +59,11 @@ export class GetMyAppointmentsUseCase extends BaseUseCase<Input, MyAppointmentsO
     const past:     PastAppointmentDto[]     = []
 
     for (const item of items) {
-      if (item.eventDate >= today) {
+      const eventDate = toDateStr(item.eventDate)
+      if (eventDate >= today) {
         upcoming.push({
           id:            item.id,
-          eventDate:     item.eventDate,
+          eventDate,
           startTime:     item.startTime,
           endTime:       item.endTime,
           bookingReason: item.bookingReason,
@@ -66,7 +72,7 @@ export class GetMyAppointmentsUseCase extends BaseUseCase<Input, MyAppointmentsO
       } else {
         past.push({
           id:                  item.id,
-          eventDate:           item.eventDate,
+          eventDate,
           startTime:           item.startTime,
           endTime:             item.endTime,
           bookingReason:       item.bookingReason,

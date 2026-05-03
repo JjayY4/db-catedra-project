@@ -14,7 +14,11 @@ interface AppointmentListWidgetProps {
 }
 
 function formatTime(value: string): string {
-  return value.slice(0, 5)
+  return String(value).slice(0, 5)
+}
+
+function formatDate(value: string): string {
+  return value instanceof Date ? (value as unknown as Date).toISOString().slice(0, 10) : String(value).slice(0, 10)
 }
 
 function StatusBadge({ status }: { status: string }) {
@@ -64,7 +68,7 @@ export function AppointmentListWidget({ upcoming, past }: AppointmentListWidgetP
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold">
-                        {appt.eventDate} · {formatTime(appt.startTime)}–{formatTime(appt.endTime)}
+                        {formatDate(appt.eventDate)} · {formatTime(appt.startTime)}–{formatTime(appt.endTime)}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">{appt.bookingReason}</p>
                       {appt.status === 'pending' && (
@@ -102,7 +106,7 @@ export function AppointmentListWidget({ upcoming, past }: AppointmentListWidgetP
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold">
-                        {appt.eventDate} · {formatTime(appt.startTime)}–{formatTime(appt.endTime)}
+                        {formatDate(appt.eventDate)} · {formatTime(appt.startTime)}–{formatTime(appt.endTime)}
                       </p>
                       <p className="text-sm text-muted-foreground mt-1">{appt.bookingReason}</p>
                     </div>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { CalendarDays, ClipboardList, Stethoscope } from 'lucide-react'
+import { CalendarDays, CalendarRange, ClipboardList, Stethoscope } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { createServerApi } from '@/shared/api/server'
@@ -12,18 +12,28 @@ interface DoctorDashboardPageProps {
 export async function DoctorDashboardPage({ user }: DoctorDashboardPageProps) {
   const today = new Date().toISOString().split('T')[0]
 
-  let totalCitas = 0
-  let reservadas = 0
+  let totalCitas      = 0
+  let reservadas      = 0
+  let sinConsulta     = 0
+  let slotsEstaSemana = 0
 
   try {
     const api = await createServerApi()
-    const { data: agendaItems } = await api.doctor.agenda.get({
-      query: { fecha: today },
-    })
-    if (agendaItems) {
-      totalCitas = agendaItems.length
-      reservadas = agendaItems.filter((item) => item.patientId !== null).length
+
+    const [agendaResult, pendingResult, weeklyResult] = await Promise.all([
+      api.doctor.agenda.get({ query: { fecha: today } }),
+      api.reports['pending-consultations'].get(),
+      api.reports['weekly-availability'].get(),
+    ])
+
+    if (agendaResult.data) {
+      totalCitas = agendaResult.data.length
+      reservadas = agendaResult.data.filter((item) => item.patientId !== null).length
     }
+    sinConsulta     = (pendingResult.data as any[] | null)?.length ?? 0
+    slotsEstaSemana = ((weeklyResult.data as any[] | null) ?? []).reduce(
+      (sum: number, d: any) => sum + (d.availableSlots ?? 0), 0,
+    )
   } catch {
     // show 0 if API fails
   }
@@ -36,10 +46,11 @@ export async function DoctorDashboardPage({ user }: DoctorDashboardPageProps) {
         <p className="text-muted-foreground">Welcome back, {user.email}</p>
       </header>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard icon={CalendarDays} title="Citas hoy" value={String(totalCitas)} tone="primary" />
-        <StatCard icon={Stethoscope} title="Reservadas" value={String(reservadas)} tone="secondary" />
-        <StatCard icon={ClipboardList} title="Disponibles" value={String(totalCitas - reservadas)} tone="warning" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard icon={CalendarDays}  title="Citas hoy"          value={String(totalCitas)}      tone="primary"   />
+        <StatCard icon={Stethoscope}   title="Reservadas"         value={String(reservadas)}      tone="secondary" />
+        <StatCard icon={ClipboardList} title="Sin consulta"       value={String(sinConsulta)}     tone="warning"   />
+        <StatCard icon={CalendarRange} title="Slots esta semana"  value={String(slotsEstaSemana)} tone="primary"   />
       </div>
 
       <div className="flex flex-wrap gap-3">
