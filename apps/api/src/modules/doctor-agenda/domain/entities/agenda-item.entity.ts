@@ -1,4 +1,4 @@
-export type AgendaStatus = 'disponible' | 'pendiente' | 'reservado' | 'completado' | 'cancelado'
+export type AgendaStatus = 'disponible' | 'pendiente' | 'reservado' | 'completado' | 'cancelado' | 'bloqueado'
 
 export interface IAgendaItem {
   slotId:          string

@@ -1,29 +1,29 @@
+import Link from 'next/link'
 import { createServerApi } from '@/shared/api/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
+import { buttonVariants } from '@/components/ui/button'
 import { ConsultationForm } from '@/features/complete-consultation'
+import { MedicalHistoryTimeline } from '@/widgets/medical-history/medical-history-timeline'
 import { EditarAntecedentesDialog } from './EditarAntecedentesDialog'
 
-interface ExpedientePageProps {
+interface UnifiedExpedientePageProps {
   appointmentId: string
+  role: 'doctor' | 'receptionist'
 }
 
 function formatDate(dateStr: string): string {
   return new Date(`${dateStr}T00:00:00.000Z`).toLocaleDateString('es-ES', {
-    day:   '2-digit',
+    day: '2-digit',
     month: 'long',
-    year:  'numeric',
+    year: 'numeric',
     timeZone: 'UTC',
   })
 }
 
-export async function ExpedientePage({ appointmentId }: ExpedientePageProps) {
+export async function UnifiedExpedientePage({ appointmentId, role }: UnifiedExpedientePageProps) {
   const api = await createServerApi()
   const { data, error } = await (api['medical-records'] as any)['by-appointment']({ appointmentId }).get()
-
-  const { data: patientHistory } = data?.patientDui
-    ? await api['medical-records']['patient-history']({ dui: data.patientDui }).get()
-    : { data: null }
 
   if (error || !data) {
     return (
@@ -36,16 +36,32 @@ export async function ExpedientePage({ appointmentId }: ExpedientePageProps) {
     )
   }
 
-  const canRegisterConsultation = data.availabilityStatus === 'busy'
+  const { data: historyData } = data.recordId
+    ? await (api['medical-records'] as any)({ id: data.recordId }).history.get({ fetch: { cache: 'no-store' } })
+    : { data: null }
+
+  const consultations = historyData?.data?.consultations ?? []
+  const isDoctor = role === 'doctor'
+  const canRegisterConsultation = isDoctor && data.availabilityStatus === 'busy'
 
   return (
     <div className="space-y-6">
+      {role === 'receptionist' && (
+        <Link
+          href="/agenda"
+          className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+        >
+          ← Volver a agenda
+        </Link>
+      )}
+
       <header>
-        <p className="text-xs font-semibold uppercase tracking-widest text-primary">Doctor</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-primary">
+          {isDoctor ? 'Doctor' : 'Recepcionista'}
+        </p>
         <h1>Expediente médico</h1>
       </header>
 
-      {/* Patient info */}
       <Card>
         <CardHeader>
           <CardTitle>Datos del paciente</CardTitle>
@@ -68,25 +84,28 @@ export async function ExpedientePage({ appointmentId }: ExpedientePageProps) {
               <dt className="font-medium text-muted-foreground">WhatsApp</dt>
               <dd>{data.whatsappPhone}</dd>
             </div>
-            <div>
-              <dt className="font-medium text-muted-foreground">Aseguradora</dt>
-              <dd>{data.insuranceName ?? <span className="text-muted-foreground italic">Sin aseguradora</span>}</dd>
-            </div>
-            {data.insuranceCoverage && (
-              <div>
-                <dt className="font-medium text-muted-foreground">Cobertura</dt>
-                <dd>{data.insuranceCoverage}</dd>
-              </div>
+            {isDoctor && (
+              <>
+                <div>
+                  <dt className="font-medium text-muted-foreground">Aseguradora</dt>
+                  <dd>{data.insuranceName ?? <span className="text-muted-foreground italic">Sin aseguradora</span>}</dd>
+                </div>
+                {data.insuranceCoverage && (
+                  <div>
+                    <dt className="font-medium text-muted-foreground">Cobertura</dt>
+                    <dd>{data.insuranceCoverage}</dd>
+                  </div>
+                )}
+              </>
             )}
           </dl>
         </CardContent>
       </Card>
 
-      {/* Medical background */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle>Antecedentes médicos</CardTitle>
-          {data.recordId && (
+          {isDoctor && data.recordId && (
             <EditarAntecedentesDialog
               recordId={data.recordId}
               bloodType={data.bloodType}
@@ -132,35 +151,12 @@ export async function ExpedientePage({ appointmentId }: ExpedientePageProps) {
         </CardContent>
       </Card>
 
-      {/* Consultation history — sourced from sp_get_patient_history */}
       <Card>
         <CardHeader>
           <CardTitle>Historial de consultas</CardTitle>
         </CardHeader>
         <CardContent>
-          {!patientHistory || (patientHistory as any[]).length === 0 ? (
-            <p className="text-sm text-muted-foreground italic">Sin consultas previas.</p>
-          ) : (
-            <ul className="space-y-4">
-              {(patientHistory as any[]).map((c, i) => (
-                <li key={c.consultationId ?? i} className="rounded-lg border border-border p-4 space-y-1 text-sm">
-                  <p className="font-semibold">Diagnóstico: {c.mainDiagnosis}</p>
-                  {c.presentedSymptoms && (
-                    <p className="text-muted-foreground">Síntomas: {c.presentedSymptoms}</p>
-                  )}
-                  {c.prescribedTreatment && (
-                    <p className="text-muted-foreground">Tratamiento: {c.prescribedTreatment}</p>
-                  )}
-                  {c.bloodPressure && (
-                    <p className="text-muted-foreground">Presión: {c.bloodPressure}</p>
-                  )}
-                  {c.weightKg && (
-                    <p className="text-muted-foreground">Peso: {c.weightKg} kg</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
+          <MedicalHistoryTimeline consultations={consultations} />
         </CardContent>
       </Card>
 

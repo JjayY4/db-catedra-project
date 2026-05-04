@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { localIsoDate } from '@/lib/date'
 
 export const blockTypeSchema = z.enum(['meeting', 'vacation', 'block'])
 
@@ -7,7 +8,7 @@ const dateRegex = /^\d{4}-\d{2}-\d{2}$/
 
 export const createBlockInputSchema = z.object({
   date:      z.string().regex(dateRegex, 'Fecha inválida').refine((value) => {
-    const today = new Date().toISOString().slice(0, 10)
+    const today = localIsoDate()
     return value >= today
   }, 'La fecha no puede ser pasada'),
   startTime: z.string().regex(timeRegex, 'Hora inicio inválida'),

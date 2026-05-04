@@ -4,6 +4,7 @@ import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
 import { IAppointmentsRepository } from '../../domain/interfaces/appointments.repository'
 import { IPatientsRepository } from '~/modules/patients/domain/interfaces/patients.repository'
+import { localIsoDate } from '~/common/utils/date'
 import type {
   MyAppointmentsOutput,
   PastAppointmentDto,
@@ -19,17 +20,6 @@ interface Input {
 function toPositiveInt(value: unknown, fallback: number): number {
   const n = Number(value)
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback
-}
-
-function todayIso(): string {
-  const d = new Date()
-  const pad = (n: number) => (n < 10 ? `0${n}` : String(n))
-  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`
-}
-
-// pg may return Date objects for date columns depending on driver/version
-function toDateStr(v: string): string {
-  return typeof v === 'string' ? v.slice(0, 10) : (v as unknown as Date).toISOString().slice(0, 10)
 }
 
 @injectable()
@@ -54,13 +44,16 @@ export class GetMyAppointmentsUseCase extends BaseUseCase<Input, MyAppointmentsO
       tx,
     )
 
-    const today = todayIso()
+    const today = localIsoDate()
     const upcoming: UpcomingAppointmentDto[] = []
     const past:     PastAppointmentDto[]     = []
 
     for (const item of items) {
-      const eventDate = toDateStr(item.eventDate)
-      if (eventDate >= today) {
+      const eventDate = item.eventDate
+      const isProximaPendiente =
+        item.availabilityStatus === 'pending' && eventDate > today
+
+      if (isProximaPendiente) {
         upcoming.push({
           id:            item.id,
           eventDate,

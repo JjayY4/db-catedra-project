@@ -1,2 +1,2 @@
-export { ExpedientePage } from './ui/ExpedientePage'
-export { ReceptionistExpedientePage } from './ui/ReceptionistExpedientePage'
+export { UnifiedExpedientePage } from './ui/UnifiedExpedientePage'
+export { RecordExpedientePage } from './ui/RecordExpedientePage'

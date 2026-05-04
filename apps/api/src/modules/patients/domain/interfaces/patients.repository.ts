@@ -5,8 +5,8 @@ import type { CompleteProfileInput } from '../../application/dtos/inputs/complet
 export abstract class IPatientsRepository {
   abstract findById(id: string, tx: TxClient): Promise<IPatient | null>
   abstract findByUserId(userId: string, tx: TxClient): Promise<IPatient | null>
-  abstract create(input: CompleteProfileInput, userId: string, tx: TxClient): Promise<IPatient>
+  abstract create(input: CompleteProfileInput, userId: string | null, tx: TxClient): Promise<IPatient>
   abstract linkUser(dui: string, userId: string, tx: TxClient): Promise<IPatient>
   abstract findAll(tx: TxClient): Promise<IPatient[]>
-  abstract findPaginated(page: number, pageSize: number, tx: TxClient): Promise<{ items: IPatient[]; total: number }>
+  abstract findPaginated(page: number, pageSize: number, tx: TxClient, search?: string): Promise<{ items: IPatient[]; total: number }>
 }

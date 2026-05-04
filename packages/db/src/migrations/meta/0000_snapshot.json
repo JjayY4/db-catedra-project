@@ -1,5 +1,5 @@
 {
-  "id": "7677ece8-adf6-49b6-a8b1-7f6d2757f8d4",
+  "id": "016a74cc-0d81-404a-99b3-c0e49d126e0d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1095,7 +1095,7 @@
           "notNull": false
         }
       },
-      "definition": "\n  SELECT\n    se.id                 AS \"eventId\",\n    se.\"doctorId\",\n    se.\"eventDate\",\n    se.\"startTime\",\n    se.\"endTime\",\n    se.\"availabilityStatus\",\n    ma.id                 AS \"appointmentId\",\n    ma.\"bookingReason\",\n    p.dui                 AS \"patientDui\",\n    p.\"firstName\",\n    p.\"lastName\",\n    p.\"whatsappPhone\"\n  FROM \"ScheduleEvents\" se\n  LEFT JOIN \"MedicalAppointments\" ma ON ma.\"eventId\" = se.id\n  LEFT JOIN \"Patients\" p             ON p.dui = ma.\"patientDui\"\n  WHERE se.\"eventType\" = 'appointment'\n",
+      "definition": "\n  SELECT\n    se.id                   AS \"eventId\",\n    se.\"doctorId\",\n    se.\"eventDate\",\n    se.\"startTime\",\n    se.\"endTime\",\n    se.\"availabilityStatus\",\n    ma.id                   AS \"appointmentId\",\n    ma.\"bookingReason\",\n    p.dui                   AS \"patientDui\",\n    p.\"firstName\",\n    p.\"lastName\",\n    p.\"whatsappPhone\"\n  FROM \"ScheduleEvents\" se\n  LEFT JOIN \"MedicalAppointments\" ma ON ma.\"eventId\" = se.id\n  LEFT JOIN \"Patients\"            p  ON p.dui        = ma.\"patientDui\"\n  WHERE se.\"eventType\" IN ('appointment', 'block')\n",
       "name": "DailyScheduleView",
       "schema": "public",
       "isExisting": false,
@@ -1201,12 +1201,12 @@
         },
         "lastVisitDate": {
           "name": "lastVisitDate",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
         }
       },
-      "definition": "\n  SELECT\n    p.dui,\n    p.\"firstName\",\n    p.\"lastName\",\n    p.\"birthDate\",\n    p.\"whatsappPhone\",\n    mi.\"insurerName\",\n    mi.\"coverageType\",\n    mr.id                      AS \"recordId\",\n    mr.\"bloodType\",\n    mr.\"knownAllergies\",\n    mr.\"familyHistory\",\n    mr.\"chronicConditions\",\n    mr.\"openedAt\"              AS \"recordOpenedAt\",\n    cc.id                      AS \"lastConsultationId\",\n    cc.\"mainDiagnosis\"         AS \"lastDiagnosis\",\n    cc.\"prescribedTreatment\"   AS \"lastTreatment\",\n    ma.\"bookedAt\"              AS \"lastVisitDate\"\n  FROM \"Patients\" p\n  LEFT JOIN \"MedicalInsurances\" mi ON mi.id = p.\"insuranceId\"\n  LEFT JOIN \"MedicalRecords\"    mr ON mr.\"patientDui\" = p.dui\n  LEFT JOIN LATERAL (\n    SELECT cc.*, ma.\"bookedAt\"\n    FROM \"ClinicalConsultations\" cc\n    JOIN \"MedicalAppointments\"   ma ON ma.id = cc.\"appointmentId\"\n    WHERE cc.\"recordId\" = mr.id\n    ORDER BY ma.\"bookedAt\" DESC\n    LIMIT 1\n  ) cc ON true\n  LEFT JOIN \"MedicalAppointments\" ma ON ma.id = cc.\"appointmentId\"\n",
+      "definition": "\n  SELECT\n    p.dui,\n    p.\"firstName\",\n    p.\"lastName\",\n    p.\"birthDate\",\n    p.\"whatsappPhone\",\n    mi.\"insurerName\",\n    mi.\"coverageType\",\n    mr.id                       AS \"recordId\",\n    mr.\"bloodType\",\n    mr.\"knownAllergies\",\n    mr.\"familyHistory\",\n    mr.\"chronicConditions\",\n    mr.\"openedAt\"               AS \"recordOpenedAt\",\n    cc.id                       AS \"lastConsultationId\",\n    cc.\"mainDiagnosis\"          AS \"lastDiagnosis\",\n    cc.\"prescribedTreatment\"    AS \"lastTreatment\",\n    ma.\"bookedAt\"               AS \"lastVisitDate\"\n  FROM \"Patients\" p\n  LEFT JOIN \"MedicalInsurances\" mi ON mi.id          = p.\"insuranceId\"\n  LEFT JOIN \"MedicalRecords\"    mr ON mr.\"patientDui\" = p.dui\n  LEFT JOIN LATERAL (\n    SELECT cc.*, ma.\"bookedAt\"\n    FROM \"ClinicalConsultations\" cc\n    JOIN \"MedicalAppointments\"   ma ON ma.id = cc.\"appointmentId\"\n    WHERE cc.\"recordId\" = mr.id\n    ORDER BY ma.\"bookedAt\" DESC\n    LIMIT 1\n  ) cc ON true\n  LEFT JOIN \"MedicalAppointments\" ma ON ma.id = cc.\"appointmentId\"\n",
       "name": "PatientFullRecordView",
       "schema": "public",
       "isExisting": false,

@@ -1,6 +1,7 @@
 import { injectable } from 'inversify'
 import { and, asc, eq } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
+import { pgDateToIsoDateString } from '~/common/utils/date'
 import { DailyScheduleView } from '@project/db/src/schema/views'
 import { IReceptionistAgendaRepository } from '../../domain/interfaces/receptionist-agenda.repository'
 import type { IAgendaSlot } from '../../domain/entities/agenda-slot.entity'
@@ -11,7 +12,7 @@ function toAgendaSlot(row: DailyScheduleRow): IAgendaSlot {
   const fullName = [row.firstName, row.lastName].filter(Boolean).join(' ').trim()
   return {
     slotId:             row.eventId ?? '',
-    eventDate:          row.eventDate ?? '',
+    eventDate:          row.eventDate == null ? '' : pgDateToIsoDateString(row.eventDate),
     startTime:          row.startTime ?? '',
     endTime:            row.endTime ?? '',
     availabilityStatus: row.availabilityStatus ?? 'available',

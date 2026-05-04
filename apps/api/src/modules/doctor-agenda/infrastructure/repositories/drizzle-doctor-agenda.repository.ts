@@ -25,7 +25,7 @@ function mapStatus(value: string | null): AgendaStatus {
     case 'busy': return 'reservado'
     case 'completed': return 'completado'
     case 'cancelled': return 'cancelado'
-    case 'blocked': return 'cancelado'
+    case 'blocked': return 'bloqueado'
     default: return 'disponible'
   }
 }

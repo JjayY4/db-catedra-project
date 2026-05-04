@@ -45,28 +45,31 @@ const DURATIONS: Array<{ value: 15 | 30 | 45 | 60; label: string }> = [
   { value: 60, label: '60 minutos' },
 ]
 
-function startOfTodayUtc(): Date {
+function startOfToday(): Date {
   const today = new Date()
-  today.setUTCHours(0, 0, 0, 0)
+  today.setHours(0, 0, 0, 0)
   return today
 }
 
 function mondayOfCurrentWeek(): Date {
-  const today = startOfTodayUtc()
-  const day = today.getUTCDay() // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const today = startOfToday()
+  const day = today.getDay() // 0 = Sun, 1 = Mon, ..., 6 = Sat
   const diff = day === 0 ? -6 : 1 - day
-  today.setUTCDate(today.getUTCDate() + diff)
+  today.setDate(today.getDate() + diff)
   return today
 }
 
 function addDays(date: Date, days: number): Date {
   const next = new Date(date)
-  next.setUTCDate(next.getUTCDate() + days)
+  next.setDate(next.getDate() + days)
   return next
 }
 
 function isoDate(date: Date): string {
-  return date.toISOString().slice(0, 10)
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
 }
 
 function offsetForDay(dayValue: number): number {
@@ -75,7 +78,7 @@ function offsetForDay(dayValue: number): number {
 
 function formatLong(date: Date): string {
   return date.toLocaleDateString('es-ES', {
-    day: '2-digit', month: 'long', year: 'numeric', timeZone: 'UTC',
+    day: '2-digit', month: 'long', year: 'numeric',
   })
 }
 
@@ -115,7 +118,7 @@ export function ConfigurarHorariosForm() {
   const [isPreviewing, startPreview] = useTransition()
   const [isConfirming, startConfirm] = useTransition()
 
-  const today  = useMemo(startOfTodayUtc, [])
+  const today  = useMemo(startOfToday, [])
   const monday = useMemo(() => addDays(mondayOfCurrentWeek(), weekOffset * 7), [weekOffset])
   const sunday = useMemo(() => addDays(monday, 6), [monday])
 

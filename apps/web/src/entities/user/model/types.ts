@@ -7,7 +7,7 @@ export interface User {
   email: string
   role: UserRole
   accountStatus: AccountStatus
-  createdAt: Date
+  createdAt: string
 }
 
 export const ROLE_DASHBOARD: Record<UserRole, string> = {
@@ -22,6 +22,8 @@ export function toUser(sessionUser: SessionUser): User {
     email:         sessionUser.email,
     role:          sessionUser.role as UserRole,
     accountStatus: sessionUser.accountStatus as AccountStatus,
-    createdAt:     sessionUser.createdAt,
+    createdAt:     sessionUser.createdAt instanceof Date
+      ? sessionUser.createdAt.toISOString()
+      : String(sessionUser.createdAt),
   }
 }

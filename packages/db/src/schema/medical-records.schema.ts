@@ -11,7 +11,7 @@ export const MedicalRecords = pgTable('MedicalRecords', {
   knownAllergies:    text('knownAllergies'),
   familyHistory:     text('familyHistory'),
   chronicConditions: text('chronicConditions'),
-  openedAt:          date('openedAt').notNull().default(sql`CURRENT_DATE`),
+  openedAt:          date('openedAt', { mode: 'string' }).notNull().default(sql`CURRENT_DATE`),
 })
 
 export type MedicalRecord    = typeof MedicalRecords.$inferSelect

@@ -8,6 +8,7 @@ import { MedicalRecords } from '@project/db/src/schema/medical-records.schema'
 import { MedicalInsurances } from '@project/db/src/schema/medical-insurances.schema'
 import { ClinicalConsultations } from '@project/db/src/schema/clinical-consultations.schema'
 import { AppError } from '~/common/errors/app-error'
+import { pgDateToIsoDateString } from '~/common/utils/date'
 import type { AppointmentDetailOutput } from '../dtos/outputs/appointment-detail.output'
 
 @injectable()
@@ -58,7 +59,7 @@ export class GetAppointmentDetailUseCase {
       patientDui:         row.patientDui,
       patientFirstName:   row.patientFirstName,
       patientLastName:    row.patientLastName,
-      patientBirthDate:   row.patientBirthDate,
+      patientBirthDate:   pgDateToIsoDateString(row.patientBirthDate),
       whatsappPhone:      row.whatsappPhone,
       insuranceId:        row.insuranceId ?? null,
       insuranceName:      row.insuranceName ?? null,
@@ -68,7 +69,7 @@ export class GetAppointmentDetailUseCase {
       knownAllergies:     row.knownAllergies ?? null,
       familyHistory:      row.familyHistory ?? null,
       chronicConditions:  row.chronicConditions ?? null,
-      openedAt:           row.openedAt ?? null,
+      openedAt:           row.openedAt == null ? null : pgDateToIsoDateString(row.openedAt),
       consultations: consultations.map((c) => ({
         id:                  c.id,
         recordId:            c.recordId,

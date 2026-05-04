@@ -4,7 +4,7 @@ import { sql } from 'drizzle-orm'
 export const DailyScheduleView = pgView('DailyScheduleView', {
   eventId:            uuid('eventId'),
   doctorId:           uuid('doctorId'),
-  eventDate:          date('eventDate'),
+  eventDate:          date('eventDate', { mode: 'string' }),
   startTime:          time('startTime'),
   endTime:            time('endTime'),
   availabilityStatus: varchar('availabilityStatus', { length: 50 }),
@@ -31,14 +31,14 @@ export const DailyScheduleView = pgView('DailyScheduleView', {
   FROM "ScheduleEvents" se
   LEFT JOIN "MedicalAppointments" ma ON ma."eventId" = se.id
   LEFT JOIN "Patients"            p  ON p.dui        = ma."patientDui"
-  WHERE se."eventType" = 'appointment'
+  WHERE se."eventType" IN ('appointment', 'block')
 `)
 
 export const PatientFullRecordView = pgView('PatientFullRecordView', {
   dui:                varchar('dui', { length: 10 }),
   firstName:          varchar('firstName', { length: 100 }),
   lastName:           varchar('lastName', { length: 100 }),
-  birthDate:          date('birthDate'),
+  birthDate:          date('birthDate', { mode: 'string' }),
   whatsappPhone:      varchar('whatsappPhone', { length: 20 }),
   insurerName:        varchar('insurerName', { length: 200 }),
   coverageType:       varchar('coverageType', { length: 50 }),
@@ -47,11 +47,11 @@ export const PatientFullRecordView = pgView('PatientFullRecordView', {
   knownAllergies:     text('knownAllergies'),
   familyHistory:      text('familyHistory'),
   chronicConditions:  text('chronicConditions'),
-  recordOpenedAt:     date('recordOpenedAt'),
+  recordOpenedAt:     date('recordOpenedAt', { mode: 'string' }),
   lastConsultationId: uuid('lastConsultationId'),
   lastDiagnosis:      text('lastDiagnosis'),
   lastTreatment:      text('lastTreatment'),
-  lastVisitDate:      timestamp('lastVisitDate', { withTimezone: true }),
+  lastVisitDate:      timestamp('lastVisitDate', { withTimezone: true, mode: 'string' }),
 }).as(sql`
   SELECT
     p.dui,

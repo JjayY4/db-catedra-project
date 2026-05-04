@@ -3,6 +3,7 @@ import { CalendarDays, CalendarRange, ClipboardList, Stethoscope } from 'lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { createServerApi } from '@/shared/api/server'
+import { localIsoDate } from '@/lib/date'
 import type { User } from '@/entities/user'
 
 interface DoctorDashboardPageProps {
@@ -10,7 +11,7 @@ interface DoctorDashboardPageProps {
 }
 
 export async function DoctorDashboardPage({ user }: DoctorDashboardPageProps) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = localIsoDate()
 
   let totalCitas      = 0
   let reservadas      = 0

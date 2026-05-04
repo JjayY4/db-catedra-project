@@ -1,8 +1,5 @@
 import { AgendaDoctorPage } from '@/views/agenda-doctora'
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10)
-}
+import { localIsoDate } from '@/lib/date'
 
 export default async function AgendaRoute({
   searchParams,
@@ -10,6 +7,6 @@ export default async function AgendaRoute({
   searchParams: Promise<{ fecha?: string }>
 }) {
   const { fecha } = await searchParams
-  const fechaFinal = fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? fecha : todayIso()
+  const fechaFinal = fecha && /^\d{4}-\d{2}-\d{2}$/.test(fecha) ? fecha : localIsoDate()
   return <AgendaDoctorPage fecha={fechaFinal} />
 }

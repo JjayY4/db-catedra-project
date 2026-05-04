@@ -3,6 +3,7 @@ import { CalendarDays, ClipboardList, MessageCircle, Users, XCircle } from 'luci
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { createServerApi } from '@/shared/api/server'
+import { localIsoDate } from '@/lib/date'
 import type { User } from '@/entities/user'
 
 interface ReceptionistDashboardPageProps {
@@ -10,7 +11,7 @@ interface ReceptionistDashboardPageProps {
 }
 
 export async function ReceptionistDashboardPage({ user }: ReceptionistDashboardPageProps) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = localIsoDate()
 
   let totalCitas = 0
   let reservadas = 0
@@ -72,9 +73,6 @@ export async function ReceptionistDashboardPage({ user }: ReceptionistDashboardP
       <div className="flex flex-wrap gap-3">
         <Link href="/agenda" className={buttonVariants()}>
           Ver agenda de hoy
-        </Link>
-        <Link href="/dashboard/receptionist/register-patient" className={buttonVariants({ variant: 'outline' })}>
-          Registrar paciente
         </Link>
       </div>
     </div>

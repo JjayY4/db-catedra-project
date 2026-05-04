@@ -1,4 +1,4 @@
-import { ReceptionistExpedientePage } from '@/views/expediente-medico'
+import { UnifiedExpedientePage } from '@/views/expediente-medico'
 
 interface ExpedienteRouteProps {
   params: Promise<{ appointmentId: string }>
@@ -6,5 +6,9 @@ interface ExpedienteRouteProps {
 
 export default async function ReceptionistExpedienteRoute({ params }: ExpedienteRouteProps) {
   const { appointmentId } = await params
-  return <ReceptionistExpedientePage appointmentId={appointmentId} />
+  return (
+    <main className="p-6 md:p-8">
+      <UnifiedExpedientePage appointmentId={appointmentId} role="receptionist" />
+    </main>
+  )
 }

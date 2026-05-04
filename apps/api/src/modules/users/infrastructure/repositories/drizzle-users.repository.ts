@@ -1,5 +1,5 @@
 import { injectable } from 'inversify'
-import { and, asc, desc, eq, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { Users } from '@project/db/src/schema/iam.schema'
 import { UserRole } from '@project/enums/src/user-role.enum'
@@ -38,7 +38,16 @@ export class DrizzleUsersRepository extends IUsersRepository {
   }
 
   list = async (filter: ListUsersFilter, tx: TxClient): Promise<PaginatedUsers> => {
-    const where = filter.role ? eq(Users.role, filter.role) : undefined
+    const term  = filter.search?.trim()
+    const searchClause = term
+      ? or(
+          ilike(Users.name,  `%${term}%`),
+          ilike(Users.email, `%${term}%`),
+        )
+      : undefined
+    const where = filter.role
+      ? and(eq(Users.role, filter.role), searchClause)
+      : searchClause
     const offset = (filter.page - 1) * filter.pageSize
     const [rows, totalRows] = await Promise.all([
       tx.select()

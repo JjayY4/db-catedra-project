@@ -1,11 +1,12 @@
 import { injectable } from 'inversify'
-import { asc, count, eq } from 'drizzle-orm'
+import { asc, count, eq, ilike, or } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
 import { Patients } from '@project/db/src/schema/patients.schema'
 import type { MedicalInsurance } from '@project/db/src/schema/medical-insurances.schema'
 import { IPatientsRepository } from '../../domain/interfaces/patients.repository'
 import type { IPatient } from '../../domain/entities/patient.entity'
 import type { CompleteProfileInput } from '../../application/dtos/inputs/complete-profile.input'
+import { pgDateToIsoDateString } from '~/common/utils/date'
 
 type PatientRow = typeof Patients.$inferSelect & {
   medicalRecord?: { id: string } | null
@@ -19,7 +20,7 @@ function toEntity(row: PatientRow): IPatient {
     firstName:         row.firstName,
     lastName:          row.lastName,
     whatsappPhone:     row.whatsappPhone,
-    birthDate:         row.birthDate,
+    birthDate:         pgDateToIsoDateString(row.birthDate),
     insuranceId:       row.insuranceId,
     recordId:          row.medicalRecord?.id ?? null,
     insuranceName:     row.insurance?.insurerName ?? null,
@@ -52,21 +53,30 @@ export class DrizzlePatientsRepository extends IPatientsRepository {
     return rows.map(toEntity)
   }
 
-  findPaginated = async (page: number, pageSize: number, tx: TxClient): Promise<{ items: IPatient[]; total: number }> => {
+  findPaginated = async (page: number, pageSize: number, tx: TxClient, search?: string): Promise<{ items: IPatient[]; total: number }> => {
     const offset = (page - 1) * pageSize
+    const term   = search?.trim()
+    const where  = term
+      ? or(
+          ilike(Patients.firstName, `%${term}%`),
+          ilike(Patients.lastName,  `%${term}%`),
+          ilike(Patients.dui,       `%${term}%`),
+        )
+      : undefined
     const [rows, [{ value: total }]] = await Promise.all([
       tx.query.Patients.findMany({
+        where,
         with:    { medicalRecord: true, insurance: true },
         orderBy: (p) => [asc(p.lastName), asc(p.firstName)],
         limit:   pageSize,
         offset,
       }),
-      tx.select({ value: count() }).from(Patients),
+      tx.select({ value: count() }).from(Patients).where(where),
     ])
     return { items: rows.map(toEntity), total }
   }
 
-  create = async (input: CompleteProfileInput, userId: string, tx: TxClient): Promise<IPatient> => {
+  create = async (input: CompleteProfileInput, userId: string | null, tx: TxClient): Promise<IPatient> => {
     const [row] = await tx.insert(Patients).values({
       dui:           input.dui,
       userId,

@@ -8,11 +8,11 @@ export const ClinicalConsultations = pgTable('ClinicalConsultations', {
                          .references(() => MedicalRecords.id),
   appointmentId:       uuid('appointmentId').notNull().unique()
                          .references(() => MedicalAppointments.id),
-  presentedSymptoms:   text('presentedSymptoms').notNull(),
+  presentedSymptoms:   text('presentedSymptoms'),
   bloodPressure:       varchar('bloodPressure', { length: 20 }),
   weightKg:            numeric('weightKg', { precision: 5, scale: 2 }),
   mainDiagnosis:       text('mainDiagnosis').notNull(),
-  prescribedTreatment: text('prescribedTreatment').notNull(),
+  prescribedTreatment: text('prescribedTreatment'),
   doctorPrivateNotes:  text('doctorPrivateNotes'),
 }, (t) => [
   index('clinical_consultations_record_id_idx').on(t.recordId),

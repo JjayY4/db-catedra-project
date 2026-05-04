@@ -1,6 +1,7 @@
 import { injectable } from 'inversify'
 import { and, asc, eq, gte, lte, ne } from 'drizzle-orm'
 import type { TxClient } from '@project/db/src/client'
+import { localIsoDate, pgDateToIsoDateString } from '~/common/utils/date'
 import { ScheduleEvents } from '@project/db/src/schema/schedule-events.schema'
 import { MedicalAppointments } from '@project/db/src/schema/medical-appointments.schema'
 import { Patients } from '@project/db/src/schema/patients.schema'
@@ -22,7 +23,7 @@ function toEntity(row: ScheduleEventRow): IScheduleEvent {
   return {
     id:                 row.id,
     doctorId:           row.doctorId,
-    eventDate:          row.eventDate,
+    eventDate:          pgDateToIsoDateString(row.eventDate),
     startTime:          row.startTime,
     endTime:            row.endTime,
     eventType:          row.eventType as ScheduleEventType,
@@ -58,8 +59,8 @@ export class DrizzleReceptionistScheduleRepository extends IReceptionistSchedule
           eq(ScheduleEvents.doctorId, doctorId),
           eq(ScheduleEvents.eventType, 'appointment'),
           eq(ScheduleEvents.availabilityStatus, 'available'),
-          gte(ScheduleEvents.eventDate, dateFrom),
-          lte(ScheduleEvents.eventDate, dateTo), // ✅ FIX aplicado
+          gte(ScheduleEvents.eventDate, dateFrom > localIsoDate() ? dateFrom : localIsoDate()),
+          lte(ScheduleEvents.eventDate, dateTo),
         ),
       )
       .orderBy(asc(ScheduleEvents.eventDate), asc(ScheduleEvents.startTime))
@@ -159,5 +160,12 @@ export class DrizzleReceptionistScheduleRepository extends IReceptionistSchedule
 
   deleteById = async (id: string, tx: TxClient): Promise<void> => {
     await tx.delete(ScheduleEvents).where(eq(ScheduleEvents.id, id))
+  }
+
+  restoreToAvailable = async (id: string, tx: TxClient): Promise<void> => {
+    await tx
+      .update(ScheduleEvents)
+      .set({ eventType: 'appointment', availabilityStatus: 'available' })
+      .where(eq(ScheduleEvents.id, id))
   }
 }

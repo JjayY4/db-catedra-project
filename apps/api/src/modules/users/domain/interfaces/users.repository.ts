@@ -4,6 +4,7 @@ import type { IUser } from '../entities/user.entity'
 
 export interface ListUsersFilter {
   role?:    UserRole
+  search?:  string
   page:     number
   pageSize: number
 }

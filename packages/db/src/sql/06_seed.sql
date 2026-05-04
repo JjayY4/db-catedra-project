@@ -1,16 +1,253 @@
 -- ============================================================
--- SEED DATA — base reference rows
--- Users and all user-dependent rows (Patients, ScheduleEvents,
--- MedicalAppointments, ClinicalConsultations) are seeded from
--- packages/db/src/seed-auth.ts, which signs users up through
--- Better Auth so Accounts rows get real scrypt-hashed passwords.
--- Default password for all seeded users: "password123"
+-- SEED DATA — transacción SQL con DML (INSERT / UPDATE / DELETE)
+-- ≥25 filas por tabla principal de dominio y operaciones DML explícitas.
+--
+-- Ejecutar solo sobre una BD migrada (drizzle + triggers) sin usuarios previos.
+-- Contraseña de todos los usuarios (credencial): password123 — hash scrypt Better Auth.
+--
+-- Orden respetando FKs: seguros → usuarios → cuentas → pacientes (dispara expedientes)
+-- → agenda → citas → actualización de estado → consultas → DELETE demostración.
 -- ============================================================
 
--- MedicalInsurances (5 rows)
+BEGIN;
+
+-- --- Pasos extra de DML: fila temporal de seguro y borrado (siguen 25 seguros útiles) ---
+INSERT INTO "MedicalInsurances" (id, "insurerName", "coverageType")
+VALUES (
+  'b1000000-0000-4000-8000-000000000099',
+  'Temporaria Seed QA',
+  'basic'
+);
+
+DELETE FROM "MedicalInsurances" WHERE id = 'b1000000-0000-4000-8000-000000000099';
+
+-- --- MedicalInsurances (25) -------------------------------------------------
 INSERT INTO "MedicalInsurances" (id, "insurerName", "coverageType") VALUES
-  ('a1000000-0000-0000-0000-000000000001', 'SISA',         'comprehensive'),
-  ('a1000000-0000-0000-0000-000000000002', 'ASESUISA',     'complete'),
-  ('a1000000-0000-0000-0000-000000000003', 'Pan American', 'basic'),
-  ('a1000000-0000-0000-0000-000000000004', 'ACSA',         'dental'),
-  ('a1000000-0000-0000-0000-000000000005', 'La Central',   'vision');
+  ('b1000000-0000-4000-8000-000000000001', 'Seguros Médicos del Pacífico', 'basic'),
+  ('b1000000-0000-4000-8000-000000000002', 'Asisa Salud', 'complete'),
+  ('b1000000-0000-4000-8000-000000000003', 'MAPFRE Vida', 'dental'),
+  ('b1000000-0000-4000-8000-000000000004', 'Sanitas Internacional', 'vision'),
+  ('b1000000-0000-4000-8000-000000000005', 'BUPA Latinoamérica', 'comprehensive'),
+  ('b1000000-0000-4000-8000-000000000006', 'AXA Salud', 'basic'),
+  ('b1000000-0000-4000-8000-000000000007', 'Allianz Care', 'complete'),
+  ('b1000000-0000-4000-8000-000000000008', 'Cigna Global', 'dental'),
+  ('b1000000-0000-4000-8000-000000000009', 'MetLife Salud', 'vision'),
+  ('b1000000-0000-4000-8000-000000000010', 'Pan American Life', 'comprehensive'),
+  ('b1000000-0000-4000-8000-000000000011', 'Médica Sur', 'basic'),
+  ('b1000000-0000-4000-8000-000000000012', 'Salud Total', 'complete'),
+  ('b1000000-0000-4000-8000-000000000013', 'Coomeva EPS', 'dental'),
+  ('b1000000-0000-4000-8000-000000000014', 'Sura Salud', 'vision'),
+  ('b1000000-0000-4000-8000-000000000015', 'Colsanitas', 'comprehensive'),
+  ('b1000000-0000-4000-8000-000000000016', 'Compensar EPS', 'basic'),
+  ('b1000000-0000-4000-8000-000000000017', 'Famisanar', 'complete'),
+  ('b1000000-0000-4000-8000-000000000018', 'Nueva EPS', 'dental'),
+  ('b1000000-0000-4000-8000-000000000019', 'Salud Mía', 'vision'),
+  ('b1000000-0000-4000-8000-000000000020', 'Mutual de Seguros', 'comprehensive'),
+  ('b1000000-0000-4000-8000-000000000021', 'La Centro Americana', 'basic'),
+  ('b1000000-0000-4000-8000-000000000022', 'Aseguradora Popular', 'complete'),
+  ('b1000000-0000-4000-8000-000000000023', 'Aseguradora Suiza', 'dental'),
+  ('b1000000-0000-4000-8000-000000000024', 'SISA Seguros', 'vision'),
+  ('b1000000-0000-4000-8000-000000000025', 'ASSA Seguros', 'comprehensive');
+
+-- --- Users (25) -------------------------------------------------------------
+INSERT INTO "Users" (id, name, email, "emailVerified", role, "accountStatus") VALUES
+  ('b0000000-0000-4000-8000-000000000001', 'María Rodríguez', 'maria.rodriguez@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000002', 'José Hernández', 'jose.hernandez@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000003', 'Ana Pérez', 'ana.perez@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000004', 'Luis González', 'luis.gonzalez@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000005', 'Carmen Sánchez', 'carmen.sanchez@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000006', 'Carlos Ramírez', 'carlos.ramirez@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000007', 'Sofía Torres', 'sofia.torres@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000008', 'Miguel Flores', 'miguel.flores@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000009', 'Laura Rivera', 'laura.rivera@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000010', 'Diego Gómez', 'diego.gomez@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000011', 'Patricia Díaz', 'patricia.diaz@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000012', 'Roberto Cruz', 'roberto.cruz@clinic.com', false, 'patient', 'active'),
+  ('b0000000-0000-4000-8000-000000000013', 'Dr. Lucía Reyes', 'lucia.reyes@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000014', 'Dr. Andrés Morales', 'andres.morales@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000015', 'Dr. Elena Ortiz', 'elena.ortiz@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000016', 'Dr. Fernando Gutiérrez', 'fernando.gutierrez@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000017', 'Dr. Gabriela Chávez', 'gabriela.chavez@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000018', 'Dr. Ricardo Ruiz', 'ricardo.ruiz@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000019', 'Dr. Isabel Álvarez', 'isabel.alvarez@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000020', 'Dr. Javier Mendoza', 'javier.mendoza@clinic.com', false, 'doctor', 'active'),
+  ('b0000000-0000-4000-8000-000000000021', 'Recep. Beatriz Vargas', 'beatriz.vargas@clinic.com', false, 'receptionist', 'active'),
+  ('b0000000-0000-4000-8000-000000000022', 'Recep. Pablo Castro', 'pablo.castro@clinic.com', false, 'receptionist', 'active'),
+  ('b0000000-0000-4000-8000-000000000023', 'Recep. Verónica García', 'veronica.garcia@clinic.com', false, 'receptionist', 'active'),
+  ('b0000000-0000-4000-8000-000000000024', 'Recep. Hugo Martínez', 'hugo.martinez@clinic.com', false, 'receptionist', 'active'),
+  ('b0000000-0000-4000-8000-000000000025', 'Recep. Adriana López', 'adriana.lopez@clinic.com', false, 'receptionist', 'active');
+
+-- --- Accounts (25, credencial email/contraseña) -----------------------------
+INSERT INTO "Accounts" (id, "accountId", "providerId", "userId", password) VALUES
+  ('c0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000001', 'credential', 'b0000000-0000-4000-8000-000000000001', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000002', 'credential', 'b0000000-0000-4000-8000-000000000002', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000003', 'credential', 'b0000000-0000-4000-8000-000000000003', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000004', 'b0000000-0000-4000-8000-000000000004', 'credential', 'b0000000-0000-4000-8000-000000000004', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000005', 'b0000000-0000-4000-8000-000000000005', 'credential', 'b0000000-0000-4000-8000-000000000005', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000006', 'b0000000-0000-4000-8000-000000000006', 'credential', 'b0000000-0000-4000-8000-000000000006', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000007', 'b0000000-0000-4000-8000-000000000007', 'credential', 'b0000000-0000-4000-8000-000000000007', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000008', 'b0000000-0000-4000-8000-000000000008', 'credential', 'b0000000-0000-4000-8000-000000000008', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000009', 'b0000000-0000-4000-8000-000000000009', 'credential', 'b0000000-0000-4000-8000-000000000009', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000010', 'b0000000-0000-4000-8000-000000000010', 'credential', 'b0000000-0000-4000-8000-000000000010', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000011', 'credential', 'b0000000-0000-4000-8000-000000000011', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000012', 'b0000000-0000-4000-8000-000000000012', 'credential', 'b0000000-0000-4000-8000-000000000012', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000013', 'b0000000-0000-4000-8000-000000000013', 'credential', 'b0000000-0000-4000-8000-000000000013', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000014', 'b0000000-0000-4000-8000-000000000014', 'credential', 'b0000000-0000-4000-8000-000000000014', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000015', 'b0000000-0000-4000-8000-000000000015', 'credential', 'b0000000-0000-4000-8000-000000000015', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000016', 'b0000000-0000-4000-8000-000000000016', 'credential', 'b0000000-0000-4000-8000-000000000016', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000017', 'b0000000-0000-4000-8000-000000000017', 'credential', 'b0000000-0000-4000-8000-000000000017', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000018', 'b0000000-0000-4000-8000-000000000018', 'credential', 'b0000000-0000-4000-8000-000000000018', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000019', 'b0000000-0000-4000-8000-000000000019', 'credential', 'b0000000-0000-4000-8000-000000000019', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000020', 'b0000000-0000-4000-8000-000000000020', 'credential', 'b0000000-0000-4000-8000-000000000020', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000021', 'b0000000-0000-4000-8000-000000000021', 'credential', 'b0000000-0000-4000-8000-000000000021', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000022', 'b0000000-0000-4000-8000-000000000022', 'credential', 'b0000000-0000-4000-8000-000000000022', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000023', 'b0000000-0000-4000-8000-000000000023', 'credential', 'b0000000-0000-4000-8000-000000000023', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000024', 'b0000000-0000-4000-8000-000000000024', 'credential', 'b0000000-0000-4000-8000-000000000024', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873'),
+  ('c0000000-0000-4000-8000-000000000025', 'b0000000-0000-4000-8000-000000000025', 'credential', 'b0000000-0000-4000-8000-000000000025', '0f445f336ee5eb394f54a0e803900ca0:90e758ed768552fed28755dc3f0462a46aa5e8fe95b3a648d39bfad09516e7e09c72a40145171295e0788576d7ee85157964abce9e78e100d82bd4f560a1a873');
+
+-- --- Patients (25) — el trigger crea 25 MedicalRecords automáticamente --------
+INSERT INTO "Patients" (dui, "userId", "firstName", "lastName", "whatsappPhone", "birthDate", "insuranceId") VALUES
+  ('10000000-0', 'b0000000-0000-4000-8000-000000000001', 'María', 'Rodríguez', '+50371000000', '1970-01-01', 'b1000000-0000-4000-8000-000000000001'),
+  ('10000011-1', 'b0000000-0000-4000-8000-000000000002', 'José', 'Hernández', '+50371000001', '1971-02-02', 'b1000000-0000-4000-8000-000000000002'),
+  ('10000022-2', 'b0000000-0000-4000-8000-000000000003', 'Ana', 'Pérez', '+50371000002', '1972-03-03', 'b1000000-0000-4000-8000-000000000003'),
+  ('10000033-3', 'b0000000-0000-4000-8000-000000000004', 'Luis', 'González', '+50371000003', '1973-04-04', 'b1000000-0000-4000-8000-000000000004'),
+  ('10000044-4', 'b0000000-0000-4000-8000-000000000005', 'Carmen', 'Sánchez', '+50371000004', '1974-05-05', 'b1000000-0000-4000-8000-000000000005'),
+  ('10000055-5', 'b0000000-0000-4000-8000-000000000006', 'Carlos', 'Ramírez', '+50371000005', '1975-06-06', 'b1000000-0000-4000-8000-000000000006'),
+  ('10000066-6', 'b0000000-0000-4000-8000-000000000007', 'Sofía', 'Torres', '+50371000006', '1976-07-07', 'b1000000-0000-4000-8000-000000000007'),
+  ('10000077-7', 'b0000000-0000-4000-8000-000000000008', 'Miguel', 'Flores', '+50371000007', '1977-08-08', 'b1000000-0000-4000-8000-000000000008'),
+  ('10000088-8', 'b0000000-0000-4000-8000-000000000009', 'Laura', 'Rivera', '+50371000008', '1978-09-09', 'b1000000-0000-4000-8000-000000000009'),
+  ('10000099-9', 'b0000000-0000-4000-8000-000000000010', 'Diego', 'Gómez', '+50371000009', '1979-10-10', 'b1000000-0000-4000-8000-000000000010'),
+  ('10000110-0', 'b0000000-0000-4000-8000-000000000011', 'Patricia', 'Díaz', '+50371000010', '1980-11-11', 'b1000000-0000-4000-8000-000000000011'),
+  ('10000121-1', 'b0000000-0000-4000-8000-000000000012', 'Roberto', 'Cruz', '+50371000011', '1981-12-12', 'b1000000-0000-4000-8000-000000000012'),
+  ('10000132-2', NULL, 'Lucía', 'Reyes', '+50371000012', '1982-01-13', 'b1000000-0000-4000-8000-000000000013'),
+  ('10000143-3', NULL, 'Andrés', 'Morales', '+50371000013', '1983-02-14', 'b1000000-0000-4000-8000-000000000014'),
+  ('10000154-4', NULL, 'Elena', 'Ortiz', '+50371000014', '1984-03-15', 'b1000000-0000-4000-8000-000000000015'),
+  ('10000165-5', NULL, 'Fernando', 'Gutiérrez', '+50371000015', '1985-04-16', 'b1000000-0000-4000-8000-000000000016'),
+  ('10000176-6', NULL, 'Gabriela', 'Chávez', '+50371000016', '1986-05-17', 'b1000000-0000-4000-8000-000000000017'),
+  ('10000187-7', NULL, 'Ricardo', 'Ruiz', '+50371000017', '1987-06-18', 'b1000000-0000-4000-8000-000000000018'),
+  ('10000198-8', NULL, 'Isabel', 'Álvarez', '+50371000018', '1988-07-19', 'b1000000-0000-4000-8000-000000000019'),
+  ('10000209-9', NULL, 'Javier', 'Mendoza', '+50371000019', '1989-08-20', 'b1000000-0000-4000-8000-000000000020'),
+  ('10000220-0', NULL, 'Beatriz', 'Vargas', '+50371000020', '1990-09-21', 'b1000000-0000-4000-8000-000000000021'),
+  ('10000231-1', NULL, 'Pablo', 'Castro', '+50371000021', '1991-10-22', 'b1000000-0000-4000-8000-000000000022'),
+  ('10000242-2', NULL, 'Verónica', 'García', '+50371000022', '1992-11-23', 'b1000000-0000-4000-8000-000000000023'),
+  ('10000253-3', NULL, 'Hugo', 'Martínez', '+50371000023', '1993-12-24', 'b1000000-0000-4000-8000-000000000024'),
+  ('10000264-4', NULL, 'Adriana', 'López', '+50371000024', '1994-01-25', 'b1000000-0000-4000-8000-000000000025');
+
+-- --- ScheduleEvents (25) ----------------------------------------------------
+INSERT INTO "ScheduleEvents" (id, "doctorId", "eventDate", "startTime", "endTime", "eventType", "availabilityStatus", "auditUserId") VALUES
+  ('e0000000-0000-4000-8000-000000000001', 'b0000000-0000-4000-8000-000000000013', CURRENT_DATE - 1, '08:00:00', '09:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000013'),
+  ('e0000000-0000-4000-8000-000000000002', 'b0000000-0000-4000-8000-000000000014', CURRENT_DATE - 2, '09:00:00', '10:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000014'),
+  ('e0000000-0000-4000-8000-000000000003', 'b0000000-0000-4000-8000-000000000015', CURRENT_DATE - 3, '10:00:00', '11:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000015'),
+  ('e0000000-0000-4000-8000-000000000004', 'b0000000-0000-4000-8000-000000000016', CURRENT_DATE - 4, '11:00:00', '12:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000016'),
+  ('e0000000-0000-4000-8000-000000000005', 'b0000000-0000-4000-8000-000000000017', CURRENT_DATE - 5, '12:00:00', '13:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000017'),
+  ('e0000000-0000-4000-8000-000000000006', 'b0000000-0000-4000-8000-000000000018', CURRENT_DATE - 6, '13:00:00', '14:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000018'),
+  ('e0000000-0000-4000-8000-000000000007', 'b0000000-0000-4000-8000-000000000019', CURRENT_DATE - 7, '14:00:00', '15:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000019'),
+  ('e0000000-0000-4000-8000-000000000008', 'b0000000-0000-4000-8000-000000000020', CURRENT_DATE - 8, '15:00:00', '16:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000020'),
+  ('e0000000-0000-4000-8000-000000000009', 'b0000000-0000-4000-8000-000000000013', CURRENT_DATE - 9, '08:00:00', '09:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000021'),
+  ('e0000000-0000-4000-8000-000000000010', 'b0000000-0000-4000-8000-000000000014', CURRENT_DATE - 10, '09:00:00', '10:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000022'),
+  ('e0000000-0000-4000-8000-000000000011', 'b0000000-0000-4000-8000-000000000015', CURRENT_DATE - 11, '10:00:00', '11:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000023'),
+  ('e0000000-0000-4000-8000-000000000012', 'b0000000-0000-4000-8000-000000000016', CURRENT_DATE - 12, '11:00:00', '12:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000024'),
+  ('e0000000-0000-4000-8000-000000000013', 'b0000000-0000-4000-8000-000000000017', CURRENT_DATE - 13, '12:00:00', '13:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000025'),
+  ('e0000000-0000-4000-8000-000000000014', 'b0000000-0000-4000-8000-000000000018', CURRENT_DATE - 14, '13:00:00', '14:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000013'),
+  ('e0000000-0000-4000-8000-000000000015', 'b0000000-0000-4000-8000-000000000019', CURRENT_DATE - 15, '14:00:00', '15:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000014'),
+  ('e0000000-0000-4000-8000-000000000016', 'b0000000-0000-4000-8000-000000000020', CURRENT_DATE - 16, '15:00:00', '16:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000015'),
+  ('e0000000-0000-4000-8000-000000000017', 'b0000000-0000-4000-8000-000000000013', CURRENT_DATE - 17, '08:00:00', '09:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000016'),
+  ('e0000000-0000-4000-8000-000000000018', 'b0000000-0000-4000-8000-000000000014', CURRENT_DATE - 18, '09:00:00', '10:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000017'),
+  ('e0000000-0000-4000-8000-000000000019', 'b0000000-0000-4000-8000-000000000015', CURRENT_DATE - 19, '10:00:00', '11:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000018'),
+  ('e0000000-0000-4000-8000-000000000020', 'b0000000-0000-4000-8000-000000000016', CURRENT_DATE - 20, '11:00:00', '12:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000019'),
+  ('e0000000-0000-4000-8000-000000000021', 'b0000000-0000-4000-8000-000000000017', CURRENT_DATE - 21, '12:00:00', '13:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000020'),
+  ('e0000000-0000-4000-8000-000000000022', 'b0000000-0000-4000-8000-000000000018', CURRENT_DATE - 22, '13:00:00', '14:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000021'),
+  ('e0000000-0000-4000-8000-000000000023', 'b0000000-0000-4000-8000-000000000019', CURRENT_DATE - 23, '14:00:00', '15:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000022'),
+  ('e0000000-0000-4000-8000-000000000024', 'b0000000-0000-4000-8000-000000000020', CURRENT_DATE - 24, '15:00:00', '16:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000023'),
+  ('e0000000-0000-4000-8000-000000000025', 'b0000000-0000-4000-8000-000000000013', CURRENT_DATE - 25, '08:00:00', '09:00:00', 'appointment', 'available', 'b0000000-0000-4000-8000-000000000024');
+
+-- --- MedicalAppointments (25) — trigger pone la agenda en pending ------------
+INSERT INTO "MedicalAppointments" (id, "eventId", "patientDui", "bookingReason") VALUES
+  ('d0000000-0000-4000-8000-000000000001', 'e0000000-0000-4000-8000-000000000001', '10000000-0', 'Control rutinario'),
+  ('d0000000-0000-4000-8000-000000000002', 'e0000000-0000-4000-8000-000000000002', '10000011-1', 'Dolor abdominal persistente'),
+  ('d0000000-0000-4000-8000-000000000003', 'e0000000-0000-4000-8000-000000000003', '10000022-2', 'Renovación de receta'),
+  ('d0000000-0000-4000-8000-000000000004', 'e0000000-0000-4000-8000-000000000004', '10000033-3', 'Chequeo de presión arterial'),
+  ('d0000000-0000-4000-8000-000000000005', 'e0000000-0000-4000-8000-000000000005', '10000044-4', 'Síntomas gripales'),
+  ('d0000000-0000-4000-8000-000000000006', 'e0000000-0000-4000-8000-000000000006', '10000055-5', 'Control rutinario'),
+  ('d0000000-0000-4000-8000-000000000007', 'e0000000-0000-4000-8000-000000000007', '10000066-6', 'Dolor abdominal persistente'),
+  ('d0000000-0000-4000-8000-000000000008', 'e0000000-0000-4000-8000-000000000008', '10000077-7', 'Renovación de receta'),
+  ('d0000000-0000-4000-8000-000000000009', 'e0000000-0000-4000-8000-000000000009', '10000088-8', 'Chequeo de presión arterial'),
+  ('d0000000-0000-4000-8000-000000000010', 'e0000000-0000-4000-8000-000000000010', '10000099-9', 'Síntomas gripales'),
+  ('d0000000-0000-4000-8000-000000000011', 'e0000000-0000-4000-8000-000000000011', '10000110-0', 'Control rutinario'),
+  ('d0000000-0000-4000-8000-000000000012', 'e0000000-0000-4000-8000-000000000012', '10000121-1', 'Dolor abdominal persistente'),
+  ('d0000000-0000-4000-8000-000000000013', 'e0000000-0000-4000-8000-000000000013', '10000132-2', 'Renovación de receta'),
+  ('d0000000-0000-4000-8000-000000000014', 'e0000000-0000-4000-8000-000000000014', '10000143-3', 'Chequeo de presión arterial'),
+  ('d0000000-0000-4000-8000-000000000015', 'e0000000-0000-4000-8000-000000000015', '10000154-4', 'Síntomas gripales'),
+  ('d0000000-0000-4000-8000-000000000016', 'e0000000-0000-4000-8000-000000000016', '10000165-5', 'Control rutinario'),
+  ('d0000000-0000-4000-8000-000000000017', 'e0000000-0000-4000-8000-000000000017', '10000176-6', 'Dolor abdominal persistente'),
+  ('d0000000-0000-4000-8000-000000000018', 'e0000000-0000-4000-8000-000000000018', '10000187-7', 'Renovación de receta'),
+  ('d0000000-0000-4000-8000-000000000019', 'e0000000-0000-4000-8000-000000000019', '10000198-8', 'Chequeo de presión arterial'),
+  ('d0000000-0000-4000-8000-000000000020', 'e0000000-0000-4000-8000-000000000020', '10000209-9', 'Síntomas gripales'),
+  ('d0000000-0000-4000-8000-000000000021', 'e0000000-0000-4000-8000-000000000021', '10000220-0', 'Control rutinario'),
+  ('d0000000-0000-4000-8000-000000000022', 'e0000000-0000-4000-8000-000000000022', '10000231-1', 'Dolor abdominal persistente'),
+  ('d0000000-0000-4000-8000-000000000023', 'e0000000-0000-4000-8000-000000000023', '10000242-2', 'Renovación de receta'),
+  ('d0000000-0000-4000-8000-000000000024', 'e0000000-0000-4000-8000-000000000024', '10000253-3', 'Chequeo de presión arterial'),
+  ('d0000000-0000-4000-8000-000000000025', 'e0000000-0000-4000-8000-000000000025', '10000264-4', 'Síntomas gripales');
+
+-- --- UPDATE: citas pasadas como completadas (misma semántica que el seed TS) -
+UPDATE "ScheduleEvents" se
+SET "availabilityStatus" = 'completed'
+WHERE se.id IN (
+  'e0000000-0000-4000-8000-000000000001',
+  'e0000000-0000-4000-8000-000000000002',
+  'e0000000-0000-4000-8000-000000000003',
+  'e0000000-0000-4000-8000-000000000004',
+  'e0000000-0000-4000-8000-000000000005',
+  'e0000000-0000-4000-8000-000000000006',
+  'e0000000-0000-4000-8000-000000000007',
+  'e0000000-0000-4000-8000-000000000008',
+  'e0000000-0000-4000-8000-000000000009',
+  'e0000000-0000-4000-8000-000000000010',
+  'e0000000-0000-4000-8000-000000000011',
+  'e0000000-0000-4000-8000-000000000012',
+  'e0000000-0000-4000-8000-000000000013',
+  'e0000000-0000-4000-8000-000000000014',
+  'e0000000-0000-4000-8000-000000000015',
+  'e0000000-0000-4000-8000-000000000016',
+  'e0000000-0000-4000-8000-000000000017',
+  'e0000000-0000-4000-8000-000000000018',
+  'e0000000-0000-4000-8000-000000000019',
+  'e0000000-0000-4000-8000-000000000020',
+  'e0000000-0000-4000-8000-000000000021',
+  'e0000000-0000-4000-8000-000000000022',
+  'e0000000-0000-4000-8000-000000000023',
+  'e0000000-0000-4000-8000-000000000024',
+  'e0000000-0000-4000-8000-000000000025'
+);
+
+-- --- ClinicalConsultations (25) ---------------------------------------------
+INSERT INTO "ClinicalConsultations" (
+  id, "recordId", "appointmentId", "presentedSymptoms", "bloodPressure", "weightKg", "mainDiagnosis", "prescribedTreatment", "doctorPrivateNotes"
+) VALUES
+  ('f0000000-0000-4000-8000-000000000001', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000000-0' LIMIT 1), 'd0000000-0000-4000-8000-000000000001', 'Cefalea', '110/70', 60.00, 'Hipertensión arterial esencial (I10)', 'Losartán 50mg cada 24h; dieta hiposódica; control en 30 días.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000002', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000011-1' LIMIT 1), 'd0000000-0000-4000-8000-000000000002', 'Fiebre y malestar general', '111/71', 61.00, 'Influenza estacional (J11)', 'Reposo, hidratación, paracetamol 500mg cada 8h por 5 días.', NULL),
+  ('f0000000-0000-4000-8000-000000000003', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000022-2' LIMIT 1), 'd0000000-0000-4000-8000-000000000003', 'Tos seca', '112/72', 62.00, 'Diabetes mellitus tipo 2 (E11)', 'Metformina 850mg cada 12h; control glucémico semanal.', NULL),
+  ('f0000000-0000-4000-8000-000000000004', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000033-3' LIMIT 1), 'd0000000-0000-4000-8000-000000000004', 'Dolor torácico leve', '113/73', 63.00, 'Faringoamigdalitis aguda (J03)', 'Amoxicilina 500mg cada 8h por 7 días; ibuprofeno PRN.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000005', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000044-4' LIMIT 1), 'd0000000-0000-4000-8000-000000000005', 'Náuseas y vómito', '114/74', 64.00, 'Gastroenteritis aguda (A09)', 'Suero oral; dieta blanda; loperamida si persiste >24h.', NULL),
+  ('f0000000-0000-4000-8000-000000000006', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000055-5' LIMIT 1), 'd0000000-0000-4000-8000-000000000006', 'Cefalea', '115/75', 65.00, 'Hipertensión arterial esencial (I10)', 'Losartán 50mg cada 24h; dieta hiposódica; control en 30 días.', NULL),
+  ('f0000000-0000-4000-8000-000000000007', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000066-6' LIMIT 1), 'd0000000-0000-4000-8000-000000000007', 'Fiebre y malestar general', '116/76', 66.00, 'Influenza estacional (J11)', 'Reposo, hidratación, paracetamol 500mg cada 8h por 5 días.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000008', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000077-7' LIMIT 1), 'd0000000-0000-4000-8000-000000000008', 'Tos seca', '117/77', 67.00, 'Diabetes mellitus tipo 2 (E11)', 'Metformina 850mg cada 12h; control glucémico semanal.', NULL),
+  ('f0000000-0000-4000-8000-000000000009', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000088-8' LIMIT 1), 'd0000000-0000-4000-8000-000000000009', 'Dolor torácico leve', '118/78', 68.00, 'Faringoamigdalitis aguda (J03)', 'Amoxicilina 500mg cada 8h por 7 días; ibuprofeno PRN.', NULL),
+  ('f0000000-0000-4000-8000-000000000010', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000099-9' LIMIT 1), 'd0000000-0000-4000-8000-000000000010', 'Náuseas y vómito', '119/79', 69.00, 'Gastroenteritis aguda (A09)', 'Suero oral; dieta blanda; loperamida si persiste >24h.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000011', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000110-0' LIMIT 1), 'd0000000-0000-4000-8000-000000000011', 'Cefalea', '120/80', 70.00, 'Hipertensión arterial esencial (I10)', 'Losartán 50mg cada 24h; dieta hiposódica; control en 30 días.', NULL),
+  ('f0000000-0000-4000-8000-000000000012', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000121-1' LIMIT 1), 'd0000000-0000-4000-8000-000000000012', 'Fiebre y malestar general', '121/81', 71.00, 'Influenza estacional (J11)', 'Reposo, hidratación, paracetamol 500mg cada 8h por 5 días.', NULL),
+  ('f0000000-0000-4000-8000-000000000013', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000132-2' LIMIT 1), 'd0000000-0000-4000-8000-000000000013', 'Tos seca', '122/82', 72.00, 'Diabetes mellitus tipo 2 (E11)', 'Metformina 850mg cada 12h; control glucémico semanal.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000014', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000143-3' LIMIT 1), 'd0000000-0000-4000-8000-000000000014', 'Dolor torácico leve', '123/83', 73.00, 'Faringoamigdalitis aguda (J03)', 'Amoxicilina 500mg cada 8h por 7 días; ibuprofeno PRN.', NULL),
+  ('f0000000-0000-4000-8000-000000000015', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000154-4' LIMIT 1), 'd0000000-0000-4000-8000-000000000015', 'Náuseas y vómito', '124/84', 74.00, 'Gastroenteritis aguda (A09)', 'Suero oral; dieta blanda; loperamida si persiste >24h.', NULL),
+  ('f0000000-0000-4000-8000-000000000016', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000165-5' LIMIT 1), 'd0000000-0000-4000-8000-000000000016', 'Cefalea', '125/70', 75.00, 'Hipertensión arterial esencial (I10)', 'Losartán 50mg cada 24h; dieta hiposódica; control en 30 días.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000017', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000176-6' LIMIT 1), 'd0000000-0000-4000-8000-000000000017', 'Fiebre y malestar general', '126/71', 76.00, 'Influenza estacional (J11)', 'Reposo, hidratación, paracetamol 500mg cada 8h por 5 días.', NULL),
+  ('f0000000-0000-4000-8000-000000000018', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000187-7' LIMIT 1), 'd0000000-0000-4000-8000-000000000018', 'Tos seca', '127/72', 77.00, 'Diabetes mellitus tipo 2 (E11)', 'Metformina 850mg cada 12h; control glucémico semanal.', NULL),
+  ('f0000000-0000-4000-8000-000000000019', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000198-8' LIMIT 1), 'd0000000-0000-4000-8000-000000000019', 'Dolor torácico leve', '128/73', 78.00, 'Faringoamigdalitis aguda (J03)', 'Amoxicilina 500mg cada 8h por 7 días; ibuprofeno PRN.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000020', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000209-9' LIMIT 1), 'd0000000-0000-4000-8000-000000000020', 'Náuseas y vómito', '129/74', 79.00, 'Gastroenteritis aguda (A09)', 'Suero oral; dieta blanda; loperamida si persiste >24h.', NULL),
+  ('f0000000-0000-4000-8000-000000000021', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000220-0' LIMIT 1), 'd0000000-0000-4000-8000-000000000021', 'Cefalea', '110/75', 80.00, 'Hipertensión arterial esencial (I10)', 'Losartán 50mg cada 24h; dieta hiposódica; control en 30 días.', NULL),
+  ('f0000000-0000-4000-8000-000000000022', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000231-1' LIMIT 1), 'd0000000-0000-4000-8000-000000000022', 'Fiebre y malestar general', '111/76', 81.00, 'Influenza estacional (J11)', 'Reposo, hidratación, paracetamol 500mg cada 8h por 5 días.', 'Paciente colaborador; reevaluar en 30 días.'),
+  ('f0000000-0000-4000-8000-000000000023', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000242-2' LIMIT 1), 'd0000000-0000-4000-8000-000000000023', 'Tos seca', '112/77', 82.00, 'Diabetes mellitus tipo 2 (E11)', 'Metformina 850mg cada 12h; control glucémico semanal.', NULL),
+  ('f0000000-0000-4000-8000-000000000024', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000253-3' LIMIT 1), 'd0000000-0000-4000-8000-000000000024', 'Dolor torácico leve', '113/78', 83.00, 'Faringoamigdalitis aguda (J03)', 'Amoxicilina 500mg cada 8h por 7 días; ibuprofeno PRN.', NULL),
+  ('f0000000-0000-4000-8000-000000000025', (SELECT id FROM "MedicalRecords" WHERE "patientDui" = '10000264-4' LIMIT 1), 'd0000000-0000-4000-8000-000000000025', 'Náuseas y vómito', '114/79', 84.00, 'Gastroenteritis aguda (A09)', 'Suero oral; dieta blanda; loperamida si persiste >24h.', 'Paciente colaborador; reevaluar en 30 días.');
+
+COMMIT;

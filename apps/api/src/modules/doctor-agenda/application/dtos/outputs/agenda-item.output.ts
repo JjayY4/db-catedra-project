@@ -6,6 +6,7 @@ export const AgendaStatusSchema = t.Union([
   t.Literal('reservado'),
   t.Literal('completado'),
   t.Literal('cancelado'),
+  t.Literal('bloqueado'),
 ])
 
 export const AgendaItemOutputSchema = t.Object({

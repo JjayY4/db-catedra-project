@@ -24,6 +24,12 @@ export const app = new Elysia({ adapter: BunAdapter })
     credentials: true,
   }))
   .decorate('container', container)
+  .onRequest(({ request }) => {
+    console.log(`→ ${request.method} ${new URL(request.url).pathname}`)
+  })
+  .onAfterResponse(({ request, set }) => {
+    console.log(`← ${request.method} ${new URL(request.url).pathname} ${set.status}`)
+  })
   .onError(({ error, code }) => {
     if (error instanceof AppError) {
       return Response.json(

@@ -5,8 +5,8 @@ export const metadata = { title: 'Usuarios' }
 export default async function UsuariosRoute({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>
+  searchParams: Promise<{ page?: string; search?: string }>
 }) {
-  const { page } = await searchParams
-  return <UsuariosPage page={page} />
+  const { page, search = '' } = await searchParams
+  return <UsuariosPage page={page} search={search} />
 }

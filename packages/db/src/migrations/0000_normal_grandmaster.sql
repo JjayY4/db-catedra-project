@@ -136,22 +136,22 @@ CREATE INDEX "sessions_user_id_idx" ON "Sessions" USING btree ("userId");--> sta
 CREATE INDEX "verifications_identifier_idx" ON "Verifications" USING btree ("identifier");--> statement-breakpoint
 CREATE VIEW "public"."DailyScheduleView" AS (
   SELECT
-    se.id                 AS "eventId",
+    se.id                   AS "eventId",
     se."doctorId",
     se."eventDate",
     se."startTime",
     se."endTime",
     se."availabilityStatus",
-    ma.id                 AS "appointmentId",
+    ma.id                   AS "appointmentId",
     ma."bookingReason",
-    p.dui                 AS "patientDui",
+    p.dui                   AS "patientDui",
     p."firstName",
     p."lastName",
     p."whatsappPhone"
   FROM "ScheduleEvents" se
   LEFT JOIN "MedicalAppointments" ma ON ma."eventId" = se.id
-  LEFT JOIN "Patients" p             ON p.dui = ma."patientDui"
-  WHERE se."eventType" = 'appointment'
+  LEFT JOIN "Patients"            p  ON p.dui        = ma."patientDui"
+  WHERE se."eventType" IN ('appointment', 'block')
 );--> statement-breakpoint
 CREATE VIEW "public"."PatientFullRecordView" AS (
   SELECT
@@ -162,18 +162,18 @@ CREATE VIEW "public"."PatientFullRecordView" AS (
     p."whatsappPhone",
     mi."insurerName",
     mi."coverageType",
-    mr.id                      AS "recordId",
+    mr.id                       AS "recordId",
     mr."bloodType",
     mr."knownAllergies",
     mr."familyHistory",
     mr."chronicConditions",
-    mr."openedAt"              AS "recordOpenedAt",
-    cc.id                      AS "lastConsultationId",
-    cc."mainDiagnosis"         AS "lastDiagnosis",
-    cc."prescribedTreatment"   AS "lastTreatment",
-    ma."bookedAt"              AS "lastVisitDate"
+    mr."openedAt"               AS "recordOpenedAt",
+    cc.id                       AS "lastConsultationId",
+    cc."mainDiagnosis"          AS "lastDiagnosis",
+    cc."prescribedTreatment"    AS "lastTreatment",
+    ma."bookedAt"               AS "lastVisitDate"
   FROM "Patients" p
-  LEFT JOIN "MedicalInsurances" mi ON mi.id = p."insuranceId"
+  LEFT JOIN "MedicalInsurances" mi ON mi.id          = p."insuranceId"
   LEFT JOIN "MedicalRecords"    mr ON mr."patientDui" = p.dui
   LEFT JOIN LATERAL (
     SELECT cc.*, ma."bookedAt"

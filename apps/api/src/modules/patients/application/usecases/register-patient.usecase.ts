@@ -13,30 +13,35 @@ import type { PatientOutput } from '../dtos/outputs/patient.output'
 export class RegisterPatientUseCase extends BaseUseCase<RegisterPatientInput, PatientOutput> {
   constructor(
     private readonly patients: IPatientsRepository,
-    private readonly users: IUsersRepository,
+    private readonly users:    IUsersRepository,
   ) { super() }
 
   protected async handle(input: RegisterPatientInput, tx: TxClient): Promise<PatientOutput> {
     const existingPatient = await this.patients.findById(input.dui, tx)
     if (existingPatient) throw new AppError('DUI ya registrado', 409)
 
-    const existingUser = await this.users.findByEmail(input.email, tx)
-    if (existingUser) throw new AppError('Email ya registrado', 409)
+    let userId: string | null = null
 
-    await auth.api.signUpEmail({
-      body: {
-        email:    input.email,
-        password: input.password,
-        name:     `${input.firstName} ${input.lastName}`,
-      },
-    })
+    if (input.email && input.password) {
+      const existingUser = await this.users.findByEmail(input.email, tx)
+      if (existingUser) throw new AppError('Email ya registrado', 409)
 
-    const created = await this.users.findByEmail(input.email, tx)
-    if (!created) throw new AppError('Failed to create user', 500)
+      await auth.api.signUpEmail({
+        body: {
+          email:    input.email,
+          password: input.password,
+          name:     `${input.firstName} ${input.lastName}`,
+        },
+      })
 
-    await this.users.updateRole(created.id, UserRole.Patient, tx)
+      const created = await this.users.findByEmail(input.email, tx)
+      if (!created) throw new AppError('Failed to create user', 500)
 
-    const patient = await this.patients.create(input, created.id, tx)
+      await this.users.updateRole(created.id, UserRole.Patient, tx)
+      userId = created.id
+    }
+
+    const patient = await this.patients.create(input, userId, tx)
 
     return {
       dui:               patient.dui,

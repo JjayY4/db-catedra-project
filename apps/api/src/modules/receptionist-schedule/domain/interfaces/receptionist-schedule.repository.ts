@@ -39,4 +39,5 @@ export abstract class IReceptionistScheduleRepository {
     tx: TxClient,
   ): Promise<IScheduleEvent[]>
   abstract deleteById(id: string, tx: TxClient): Promise<void>
+  abstract restoreToAvailable(id: string, tx: TxClient): Promise<void>
 }

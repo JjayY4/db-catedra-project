@@ -4,11 +4,11 @@ export const ConsultationItemOutputSchema = t.Object({
   id:                  t.String(),
   recordId:            t.String(),
   appointmentId:       t.String(),
-  presentedSymptoms:   t.String(),
+  presentedSymptoms:   t.Nullable(t.String()),
   bloodPressure:       t.Nullable(t.String()),
   weightKg:            t.Nullable(t.String()),
   mainDiagnosis:       t.String(),
-  prescribedTreatment: t.String(),
+  prescribedTreatment: t.Nullable(t.String()),
   doctorPrivateNotes:  t.Nullable(t.String()),
 })
 
@@ -38,11 +38,11 @@ export const PatientConsultationItemOutputSchema = t.Object({
   id:                  t.String(),
   recordId:            t.String(),
   appointmentId:       t.String(),
-  presentedSymptoms:   t.String(),
+  presentedSymptoms:   t.Nullable(t.String()),
   bloodPressure:       t.Nullable(t.String()),
   weightKg:            t.Nullable(t.String()),
   mainDiagnosis:       t.String(),
-  prescribedTreatment: t.String(),
+  prescribedTreatment: t.Nullable(t.String()),
 })
 
 export const PatientAppointmentDetailOutputSchema = t.Object({

@@ -20,12 +20,12 @@ export class DeleteBlockUseCase extends BaseUseCase<Input, Output> {
     const event = await this.events.findById(id, tx)
     if (!event) throw new AppError('Bloqueo no encontrado', 404)
 
-    const conflict = await this.events.findActiveAppointmentForEvent(id, tx)
-    if (conflict) {
-      throw new AppError('Este slot tiene una cita asociada', 409)
+    const activeConflict = await this.events.findActiveAppointmentForEvent(id, tx)
+    if (activeConflict) {
+      throw new AppError('Este slot tiene una cita activa', 409)
     }
 
-    await this.events.deleteById(id, tx)
+    await this.events.restoreToAvailable(id, tx)
     return { success: true }
   }
 }

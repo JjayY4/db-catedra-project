@@ -9,20 +9,23 @@ interface Props {
   totalPages: number
   total:      number
   pageSize:   number
+  search?:    string
+  label?:     string
 }
 
-export function PaginationControls({ page, totalPages, total, pageSize }: Props) {
-  const from = (page - 1) * pageSize + 1
-  const to   = Math.min(page * pageSize, total)
+export function PaginationControls({ page, totalPages, total, pageSize, search, label = 'paciente' }: Props) {
+  const from         = (page - 1) * pageSize + 1
+  const to           = Math.min(page * pageSize, total)
+  const searchSuffix = search ? `&search=${encodeURIComponent(search)}` : ''
 
   return (
     <div className="flex items-center justify-between text-sm text-muted-foreground">
       <span>
-        {from}–{to} de {total} paciente{total !== 1 ? 's' : ''}
+        {from}–{to} de {total} {label}{total !== 1 ? 's' : ''}
       </span>
       <div className="flex gap-2">
         <Link
-          href={`?page=${page - 1}`}
+          href={`?page=${page - 1}${searchSuffix}`}
           aria-disabled={page <= 1}
           className={cn(
             buttonVariants({ variant: 'outline', size: 'sm' }),
@@ -35,7 +38,7 @@ export function PaginationControls({ page, totalPages, total, pageSize }: Props)
           {page} / {totalPages}
         </span>
         <Link
-          href={`?page=${page + 1}`}
+          href={`?page=${page + 1}${searchSuffix}`}
           aria-disabled={page >= totalPages}
           className={cn(
             buttonVariants({ variant: 'outline', size: 'sm' }),

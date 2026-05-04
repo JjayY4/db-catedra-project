@@ -1,8 +1,10 @@
+import Link from 'next/link'
 import { createServerApi } from '@/shared/api/server'
 import { NuevoPacienteDialog } from './NuevoPacienteDialog'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert } from '@/components/ui/alert'
 import { PaginationControls } from './PaginationControls'
+import { SearchIcon, XIcon } from 'lucide-react'
 
 const PAGE_SIZE = 10
 
@@ -15,13 +17,14 @@ function formatDate(value: unknown): string {
 }
 
 interface Props {
-  page: number
+  page:    number
+  search?: string
 }
 
-export async function RegistrarPacientePage({ page }: Props) {
+export async function RegistrarPacientePage({ page, search = '' }: Props) {
   const api = await createServerApi()
   const { data, error } = await api.patients.get({
-    query: { page: String(page), pageSize: String(PAGE_SIZE) } as any,
+    query: { page: String(page), pageSize: String(PAGE_SIZE), search } as any,
     fetch: { cache: 'no-store' },
   })
 
@@ -42,15 +45,45 @@ export async function RegistrarPacientePage({ page }: Props) {
         <NuevoPacienteDialog />
       </header>
 
+      <form method="GET" className="flex gap-2">
+        <div className="relative flex-1 max-w-sm">
+          <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <input
+            name="search"
+            defaultValue={search}
+            placeholder="Buscar por nombre o DUI…"
+            className="w-full rounded-md border border-input bg-background pl-9 pr-4 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+          <input type="hidden" name="page" value="1" />
+        </div>
+        <button
+          type="submit"
+          className="inline-flex items-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+        >
+          Buscar
+        </button>
+        {search && (
+          <Link
+            href="?"
+            className="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-muted transition-colors"
+          >
+            <XIcon className="h-3.5 w-3.5" />
+            Limpiar
+          </Link>
+        )}
+      </form>
+
       {error ? (
         <Alert variant="destructive" className="text-sm">
           No se pudo cargar la lista de pacientes.
         </Alert>
-      ) : patients.length === 0 && page === 1 ? (
+      ) : patients.length === 0 ? (
         <Card>
           <CardContent>
             <p className="py-8 text-center text-sm text-muted-foreground">
-              No hay pacientes registrados aún. Usa el botón &quot;Nuevo paciente&quot; para agregar uno.
+              {search
+                ? `No se encontraron pacientes para "${search}".`
+                : 'No hay pacientes registrados aún. Usa el botón "Nuevo paciente" para agregar uno.'}
             </p>
           </CardContent>
         </Card>
@@ -102,7 +135,7 @@ export async function RegistrarPacientePage({ page }: Props) {
             </table>
           </div>
 
-          <PaginationControls page={page} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} />
+          <PaginationControls page={page} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} search={search || undefined} />
         </div>
       )}
     </div>

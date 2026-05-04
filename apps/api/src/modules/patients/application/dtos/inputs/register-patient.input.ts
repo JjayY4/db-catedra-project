@@ -1,8 +1,8 @@
 import { t, type Static } from 'elysia'
 
 export const RegisterPatientInputSchema = t.Object({
-  email:       t.String({ format: 'email' }),
-  password:    t.String({ minLength: 8 }),
+  email:       t.Optional(t.String({ format: 'email' })),
+  password:    t.Optional(t.String({ minLength: 8 })),
   firstName:   t.String({ minLength: 1 }),
   lastName:    t.String({ minLength: 1 }),
   dui:         t.String({ minLength: 9, maxLength: 9 }),

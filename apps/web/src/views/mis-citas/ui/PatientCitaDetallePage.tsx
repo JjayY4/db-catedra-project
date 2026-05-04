@@ -27,6 +27,13 @@ export async function PatientCitaDetallePage({ appointmentId }: PatientCitaDetal
   }
 
   const status = data.availabilityStatus
+  const STATUS_LABELS: Record<string, string> = {
+    pending:   'Pendiente de aprobación',
+    busy:      'Confirmada',
+    completed: 'Completada',
+    cancelled: 'Cancelada',
+  }
+  const statusLabel = STATUS_LABELS[status] ?? status
 
   return (
     <div className="space-y-6">
@@ -46,7 +53,7 @@ export async function PatientCitaDetallePage({ appointmentId }: PatientCitaDetal
           <CardTitle className="flex items-center gap-3">
             Información de la cita
             <Badge variant={status === 'completed' ? 'success' : status === 'cancelled' ? 'destructive' : 'secondary'}>
-              {status}
+              {statusLabel}
             </Badge>
           </CardTitle>
         </CardHeader>

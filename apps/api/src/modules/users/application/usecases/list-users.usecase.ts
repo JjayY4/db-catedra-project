@@ -7,6 +7,7 @@ import type { UsersListOutput } from '../dtos/outputs/user.output'
 
 interface Input {
   role?:     UserRole
+  search?:   string
   page?:     string | number
   pageSize?: string | number
 }
@@ -23,7 +24,7 @@ export class ListUsersUseCase extends BaseUseCase<Input, UsersListOutput> {
   protected async handle(input: Input, tx: TxClient): Promise<UsersListOutput> {
     const page     = toPositiveInt(input.page, 1)
     const pageSize = toPositiveInt(input.pageSize, 20)
-    const { items, total } = await this.users.list({ role: input.role, page, pageSize }, tx)
+    const { items, total } = await this.users.list({ role: input.role, search: input.search, page, pageSize }, tx)
     return {
       items: items.map((user) => ({
         id:            user.id,

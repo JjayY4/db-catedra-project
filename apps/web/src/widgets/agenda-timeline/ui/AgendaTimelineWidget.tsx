@@ -1,11 +1,12 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import Link from 'next/link'
 import type { AgendaItemOutput } from '@project/api/src/modules/doctor-agenda/application/dtos/outputs/agenda-item.output'
 import { clientApi } from '@/shared/api/client'
 import { SlotCard, DayNav } from '@/shared/ui'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 
 type AgendaStatus = AgendaItemOutput['status']
 
@@ -16,12 +17,13 @@ interface AgendaTimelineWidgetProps {
   fecha: string
 }
 
-const STATUS_MAP: Record<AgendaStatus, 'available' | 'busy' | 'completed' | 'cancelled' | 'pending'> = {
+const STATUS_MAP: Record<AgendaStatus, 'available' | 'busy' | 'completed' | 'cancelled' | 'pending' | 'blocked'> = {
   disponible: 'available',
   reservado:  'busy',
   completado: 'completed',
   cancelado:  'cancelled',
   pendiente:  'pending',
+  bloqueado:  'blocked',
 }
 
 function formatTime(t: string): string {
@@ -32,21 +34,26 @@ function AgendaSlotCard({
   item,
   fecha,
   onBlocked,
+  onUnblocked,
   onAccepted,
   onDeclined,
 }: {
   item: AgendaItem
   fecha: string
   onBlocked: (slotId: string) => void
+  onUnblocked: (slotId: string) => void
   onAccepted: (slotId: string) => void
   onDeclined: (slotId: string) => void
 }) {
   const [isBlockPending, startBlockTransition] = useTransition()
+  const [isUnblockPending, startUnblockTransition] = useTransition()
   const [isAcceptPending, startAcceptTransition] = useTransition()
   const [isDeclinePending, startDeclineTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const isFree = item.status === 'disponible'
   const isPending = item.status === 'pendiente'
+  const isBlocked = item.status === 'bloqueado'
+  const isReserved = item.status === 'reservado'
 
   function handleBlock() {
     setError(null)
@@ -65,6 +72,23 @@ function AgendaSlotCard({
         return
       }
       onBlocked(item.slotId)
+    })
+  }
+
+  function handleUnblock() {
+    setError(null)
+    startUnblockTransition(async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: err } = await (clientApi as any)['schedule-events']({ id: item.slotId }).delete()
+      if (err) {
+        const val = err.value
+        const msg = val && typeof val === 'object' && 'message' in val && typeof val.message === 'string'
+          ? val.message
+          : 'No se pudo desbloquear el horario.'
+        setError(msg)
+        return
+      }
+      onUnblocked(item.slotId)
     })
   }
 
@@ -138,6 +162,24 @@ function AgendaSlotCard({
                 {isBlockPending ? 'Bloqueando…' : 'Bloquear'}
               </Button>
             )}
+            {isBlocked && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isUnblockPending}
+                onClick={handleUnblock}
+              >
+                {isUnblockPending ? 'Desbloqueando…' : 'Desbloquear'}
+              </Button>
+            )}
+            {isReserved && item.appointmentId && (
+              <Link
+                href={`/dashboard/doctor/expediente/${item.appointmentId}`}
+                className={buttonVariants({ size: 'sm', variant: 'outline' })}
+              >
+                Ver expediente
+              </Link>
+            )}
             {isPending && (
               <>
                 <Button
@@ -172,7 +214,15 @@ export function AgendaTimelineWidget({ items: initialItems, fecha }: AgendaTimel
   function handleBlocked(slotId: string) {
     setItems((prev) =>
       prev.map((item) =>
-        item.slotId === slotId ? { ...item, status: 'cancelado' as AgendaStatus } : item
+        item.slotId === slotId ? { ...item, status: 'bloqueado' as AgendaStatus } : item
+      )
+    )
+  }
+
+  function handleUnblocked(slotId: string) {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.slotId === slotId ? { ...item, status: 'disponible' as AgendaStatus } : item
       )
     )
   }
@@ -221,6 +271,7 @@ export function AgendaTimelineWidget({ items: initialItems, fecha }: AgendaTimel
               item={item}
               fecha={fecha}
               onBlocked={handleBlocked}
+              onUnblocked={handleUnblocked}
               onAccepted={handleAccepted}
               onDeclined={handleDeclined}
             />

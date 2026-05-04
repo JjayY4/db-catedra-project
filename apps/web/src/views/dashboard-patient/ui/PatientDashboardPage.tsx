@@ -1,18 +1,38 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { CalendarClock, CalendarPlus, FileText } from 'lucide-react'
-import { requireAuth } from '@/shared/auth/guards.server'
 import { createServerApi } from '@/shared/api/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import type { User } from '@/entities/user'
+import { toIsoDateString } from '@/lib/date'
 
 interface PatientDashboardPageProps {
   user: User
 }
 
-function formatTime(t: string) {
-  return t.slice(0, 5)
+function formatTime(t: unknown) {
+  return String(t ?? '').slice(0, 5)
+}
+
+/** Solo desarrollo: detecta valores `Date` u objetos no serializables en props de API. */
+function logPatientDashboardDebug(label: string, value: unknown) {
+  if (process.env.NODE_ENV !== 'development') return
+  if (value === null || value === undefined) {
+    console.log(`[PatientDashboard debug] ${label}:`, value)
+    return
+  }
+  if (typeof value !== 'object') {
+    console.log(`[PatientDashboard debug] ${label}:`, typeof value, value)
+    return
+  }
+  const summary = Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([k, v]) => {
+      if (v instanceof Date) return [k, `[Date] ${v.toISOString()}`]
+      return [k, v]
+    }),
+  )
+  console.log(`[PatientDashboard debug] ${label}`, summary)
 }
 
 export async function PatientDashboardPage({ user }: PatientDashboardPageProps) {
@@ -24,12 +44,20 @@ export async function PatientDashboardPage({ user }: PatientDashboardPageProps) 
     redirect('/complete-profile')
   }
 
-  const [{ data: appointmentsData }, { data: profile }] = await Promise.all([
-    api.appointments.my.get({ query: { page: '1', pageSize: '3' } }),
-    api.patients.profile.get({ query: { dui: patient.dui } }),
-  ])
+  const { data: appointmentsData } = await api.appointments.my.get({
+    query: { page: '1', pageSize: '3' },
+  })
 
-  const upcoming = appointmentsData?.upcoming ?? []
+  // Eden / deserialización pueden devolver columnas fecha como `Date`; hay que
+  // sustituir antes del render/RSC para no enviar `Date` en el flight stream.
+  const upcoming = (appointmentsData?.upcoming ?? []).map((row) => ({
+    ...row,
+    eventDate: toIsoDateString((row as { eventDate: unknown }).eventDate),
+  }))
+
+  logPatientDashboardDebug('user (props)', user)
+  logPatientDashboardDebug('patient (/patients/me)', patient)
+  if (upcoming[0]) logPatientDashboardDebug('upcoming[0] (normalized)', upcoming[0])
 
   return (
     <div className="space-y-8">
@@ -37,20 +65,10 @@ export async function PatientDashboardPage({ user }: PatientDashboardPageProps) 
         <p className="text-xs font-semibold uppercase tracking-widest text-primary">Paciente</p>
         <h1>Bienvenido, {patient.firstName}</h1>
         <p className="text-muted-foreground">{user.email}</p>
-        {profile?.insurerName && (
+        {patient.insuranceName && (
           <p className="text-sm text-muted-foreground">
-            Aseguradora: <span className="font-medium text-foreground">{profile.insurerName}</span>
-            {profile.coverageType && ` — ${profile.coverageType}`}
-          </p>
-        )}
-        {profile?.lastVisitDate && (
-          <p className="text-sm text-muted-foreground">
-            Última visita:{' '}
-            <span className="font-medium text-foreground">
-              {new Date(profile.lastVisitDate).toLocaleDateString('es-ES', {
-                day: '2-digit', month: 'long', year: 'numeric',
-              })}
-            </span>
+            Aseguradora: <span className="font-medium text-foreground">{patient.insuranceName}</span>
+            {patient.insuranceCoverage && ` — ${patient.insuranceCoverage}`}
           </p>
         )}
       </header>
@@ -80,7 +98,9 @@ export async function PatientDashboardPage({ user }: PatientDashboardPageProps) 
             <CalendarClock className="h-5 w-5 text-primary" />
             Próximas citas
           </CardTitle>
-          <CardDescription>Tus citas agendadas más cercanas</CardDescription>
+          <CardDescription>
+            Pendientes de aprobación, con fecha posterior a hoy.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {upcoming.length === 0 ? (

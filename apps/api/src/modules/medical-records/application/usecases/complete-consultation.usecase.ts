@@ -24,17 +24,26 @@ export class CompleteConsultationUseCase extends BaseUseCase<CompleteConsultatio
       throw new AppError('Consulta ya registrada', 422)
     }
 
-    await tx.execute(
-      sql`CALL sp_complete_consultation(
-        ${input.appointmentId}::uuid,
-        ${input.symptoms ?? null},
-        ${input.bloodPressure ?? null},
-        ${input.weight ?? null}::numeric,
-        ${input.mainDiagnosis},
-        ${input.prescribedTreatment ?? null},
-        ${input.doctorPrivateNotes ?? null}
-      )`,
-    )
+    try {
+      await tx.execute(
+        sql`CALL sp_complete_consultation(
+          ${input.appointmentId}::uuid,
+          ${input.symptoms ?? null},
+          ${input.bloodPressure ?? null},
+          ${input.weight ?? null}::numeric,
+          ${input.mainDiagnosis},
+          ${input.prescribedTreatment ?? null},
+          ${input.doctorPrivateNotes ?? null}
+        )`,
+      )
+    } catch (err) {
+      const code    = ((err as any)?.cause?.code ?? (err as any)?.code) as string | undefined
+      const message = (err as any)?.message as string | undefined
+      console.error('[complete-consultation] SP error — code:', code, '| message:', message)
+      if (code === 'P0002') throw new AppError('Cita o expediente médico no encontrado', 404)
+      if (code === 'P0001') throw new AppError(message ?? 'Error al registrar la consulta', 422)
+      throw new AppError(message ?? 'Error al registrar la consulta', 500)
+    }
 
     const [consultation] = await tx
       .select()

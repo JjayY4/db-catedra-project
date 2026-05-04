@@ -7,10 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export async function CompleteProfilePage() {
   const session = await requireAuth()
 
-  if (!session.user.emailVerified) {
-    redirect('/verify-email')
-  }
-
   const api = await createServerApi()
   const [{ data: existing }, { data: insurances }] = await Promise.all([
     api.patients.me.get(),

@@ -5,8 +5,9 @@ import { IPatientsRepository } from '../../domain/interfaces/patients.repository
 import type { PaginatedPatientsOutput } from '../dtos/outputs/patient.output'
 
 interface Input {
-  page:     number
-  pageSize: number
+  page:      number
+  pageSize:  number
+  search?:   string
 }
 
 @injectable()
@@ -14,7 +15,7 @@ export class ListPatientsUseCase extends BaseUseCase<Input, PaginatedPatientsOut
   constructor(private readonly patients: IPatientsRepository) { super() }
 
   protected async handle(input: Input, tx: TxClient): Promise<PaginatedPatientsOutput> {
-    const { items, total } = await this.patients.findPaginated(input.page, input.pageSize, tx)
+    const { items, total } = await this.patients.findPaginated(input.page, input.pageSize, tx, input.search)
     return {
       items: items.map((p) => ({
         dui:               p.dui,

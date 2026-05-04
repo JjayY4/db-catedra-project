@@ -11,6 +11,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
 
+function mapAuthError(err: { message?: string; status?: number }): string {
+  if (err.status === 429) return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+  if (err.status === 403) return 'Tu cuenta no está verificada. Revisa tu correo electrónico.'
+  const msg = err.message?.toLowerCase() ?? ''
+  if (msg.includes('invalid email or password') || msg.includes('invalid credentials')) {
+    return 'Correo o contraseña incorrectos.'
+  }
+  if (msg.includes('email not verified')) return 'Debes verificar tu correo antes de iniciar sesión.'
+  if (msg.includes('user not found'))     return 'No existe una cuenta con ese correo.'
+  if (msg.includes('too many'))           return 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.'
+  return err.message ?? 'Ocurrió un error al iniciar sesión. Intenta de nuevo.'
+}
+
 export function LoginForm() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
@@ -29,12 +42,12 @@ export function LoginForm() {
         password: values.password,
       })
       if (authError) {
-        setError(authError.message ?? 'Invalid credentials')
+        setError(mapAuthError(authError))
         return
       }
       router.push('/dashboard')
     } catch {
-      setError('Could not reach the server. Make sure the API is running.')
+      setError('No se pudo conectar al servidor. Verifica que el API esté activo.')
     } finally {
       setLoading(false)
     }
@@ -49,11 +62,11 @@ export function LoginForm() {
       )}
 
       <div className="space-y-1">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Correo electrónico</Label>
         <Input
           id="email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="tu@correo.com"
           {...register('email')}
         />
         {errors.email && (
@@ -62,7 +75,7 @@ export function LoginForm() {
       </div>
 
       <div className="space-y-1">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">Contraseña</Label>
         <Input
           id="password"
           type="password"
@@ -75,7 +88,7 @@ export function LoginForm() {
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Signing in…' : 'Sign in'}
+        {loading ? 'Iniciando sesión…' : 'Iniciar sesión'}
       </Button>
     </form>
   )

@@ -33,6 +33,7 @@ export const usersRoutes = createRouter({ prefix: '/users' })
     ({ container, query }) =>
       container.get(ListUsersUseCase).execute({
         role:     query.role as UserRole | undefined,
+        search:   query.search,
         page:     query.page,
         pageSize: query.pageSize,
       }),
@@ -40,6 +41,7 @@ export const usersRoutes = createRouter({ prefix: '/users' })
       roles: ['doctor'],
       query: t.Object({
         role:     t.Optional(t.Enum(UserRole)),
+        search:   t.Optional(t.String()),
         page:     t.Optional(t.String()),
         pageSize: t.Optional(t.String()),
       }),

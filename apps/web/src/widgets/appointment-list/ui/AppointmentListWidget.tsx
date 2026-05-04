@@ -21,11 +21,19 @@ function formatDate(value: string): string {
   return value instanceof Date ? (value as unknown as Date).toISOString().slice(0, 10) : String(value).slice(0, 10)
 }
 
+const STATUS_LABELS: Record<string, string> = {
+  pending:   'Pendiente de aprobación',
+  busy:      'Confirmada',
+  completed: 'Completada',
+  cancelled: 'Cancelada',
+}
+
 function StatusBadge({ status }: { status: string }) {
+  const label = STATUS_LABELS[status] ?? status
   if (status === 'pending') {
     return (
       <Badge className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100">
-        Pendiente de aprobación
+        {label}
       </Badge>
     )
   }
@@ -33,7 +41,7 @@ function StatusBadge({ status }: { status: string }) {
     status === 'completed' ? 'success'
     : status === 'cancelled' ? 'destructive'
     : 'secondary'
-  return <Badge variant={variant}>{status}</Badge>
+  return <Badge variant={variant}>{label}</Badge>
 }
 
 export function AppointmentListWidget({ upcoming, past }: AppointmentListWidgetProps) {
@@ -58,6 +66,9 @@ export function AppointmentListWidget({ upcoming, past }: AppointmentListWidgetP
     <div className="space-y-8">
       <section>
         <h2 className="text-lg font-semibold mb-3">Próximas citas</h2>
+        <p className="text-xs text-muted-foreground mb-3">
+          Solo citas en espera de aprobación con fecha posterior a hoy.
+        </p>
         {upcoming.length === 0 ? (
           <p className="text-sm text-muted-foreground">No tienes citas próximas.</p>
         ) : (
@@ -95,9 +106,12 @@ export function AppointmentListWidget({ upcoming, past }: AppointmentListWidgetP
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">Citas pasadas</h2>
+        <h2 className="text-lg font-semibold mb-3">Otras citas</h2>
+        <p className="text-xs text-muted-foreground mb-3">
+          Confirmadas, ya atendidas, canceladas u otras fechas (incluye el mismo día de hoy).
+        </p>
         {past.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No tienes citas pasadas.</p>
+          <p className="text-sm text-muted-foreground">No hay más citas en tu historial reciente.</p>
         ) : (
           <ul className="space-y-2">
             {past.map((appt) => (

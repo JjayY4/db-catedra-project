@@ -5,6 +5,7 @@ import { MedicalAppointments } from '@project/db/src/schema/medical-appointments
 import { ScheduleEvents } from '@project/db/src/schema/schedule-events.schema'
 import { ClinicalConsultations } from '@project/db/src/schema/clinical-consultations.schema'
 import { AppError } from '~/common/errors/app-error'
+import { pgDateToIsoDateString } from '~/common/utils/date'
 import {
   IAppointmentsRepository,
   type AppointmentWithEvent,
@@ -148,7 +149,7 @@ export class DrizzleAppointmentsRepository extends IAppointmentsRepository {
         patientDui:          row.patientDui,
         bookingReason:       row.bookingReason,
         bookedAt:            row.bookedAt,
-        eventDate:           row.eventDate,
+        eventDate:           pgDateToIsoDateString(row.eventDate),
         startTime:           row.startTime,
         endTime:             row.endTime,
         availabilityStatus:  row.availabilityStatus,

@@ -21,6 +21,9 @@ interface RegisterPatientValues {
   insuranceId: string
 }
 
+// If both email and password are provided, a user account is created and linked.
+// Otherwise the patient is registered without an account (shown as "Sin cuenta").
+
 interface Props {
   onSuccess?: () => void
 }
@@ -60,15 +63,16 @@ export function RegistrarPacienteForm({ onSuccess }: Props) {
     setServerError(null)
     startTransition(async () => {
       const { error, data } = await clientApi.patients.register.post({
-        email:       values.email,
-        password:    values.password,
+        ...(values.email && values.password
+          ? { email: values.email, password: values.password }
+          : {}),
         firstName:   values.firstName,
         lastName:    values.lastName,
         dui:         values.dui,
         birthDate:   values.birthDate,
         whatsapp:    values.whatsapp,
         insuranceId: values.insuranceId || null,
-      })
+      } as any)
       if (error) {
         const val = error.value
         const status: number = error.status
@@ -104,30 +108,39 @@ export function RegistrarPacienteForm({ onSuccess }: Props) {
           )}
 
           <div className="space-y-1">
-            <Label htmlFor="email">Correo electrónico</Label>
+            <Label htmlFor="email">
+              Correo electrónico <span className="text-xs text-muted-foreground">(opcional)</span>
+            </Label>
             <Input
               id="email"
               type="email"
               placeholder="paciente@ejemplo.com"
               disabled={isPending}
-              {...register('email', { required: 'El correo es obligatorio' })}
+              {...register('email', {
+                validate: (v) =>
+                  !v || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) || 'Correo inválido',
+              })}
             />
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="password">Contraseña</Label>
+            <Label htmlFor="password">
+              Contraseña <span className="text-xs text-muted-foreground">(opcional)</span>
+            </Label>
             <Input
               id="password"
               type="password"
               placeholder="••••••••"
               disabled={isPending}
               {...register('password', {
-                required:  'La contraseña es obligatoria',
                 minLength: { value: 8, message: 'Mínimo 8 caracteres' },
               })}
             />
             {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
+            <p className="text-xs text-muted-foreground">
+              Si se omiten, el paciente quedará sin acceso al sistema.
+            </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

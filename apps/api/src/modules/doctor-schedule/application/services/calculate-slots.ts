@@ -40,8 +40,10 @@ export function calculateSlots(input: CalculateSlotsInput): ISlotCandidate[] {
   const dayStart = new Date(Date.UTC(
     base.getUTCFullYear(), base.getUTCMonth(), base.getUTCDate(),
   ))
-  const today = new Date()
-  today.setUTCHours(0, 0, 0, 0)
+  const localNow = new Date()
+  const today = new Date(Date.UTC(
+    localNow.getFullYear(), localNow.getMonth(), localNow.getDate(),
+  ))
 
   const selected = new Set(selectedDays)
   const slots: ISlotCandidate[] = []

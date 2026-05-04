@@ -55,9 +55,10 @@ export const patientsRoutes = createRouter({ prefix: '/patients' })
       container.get(ListPatientsUseCase).execute({
         page:     Math.max(1, Number(query.page)     || 1),
         pageSize: Math.min(100, Math.max(1, Number(query.pageSize) || 10)),
+        search:   query.search,
       }),
     {
-      query:    t.Object({ page: t.Optional(t.String()), pageSize: t.Optional(t.String()) }),
+      query:    t.Object({ page: t.Optional(t.String()), pageSize: t.Optional(t.String()), search: t.Optional(t.String()) }),
       response: PaginatedPatientsOutputSchema,
       auth:     true,
     },

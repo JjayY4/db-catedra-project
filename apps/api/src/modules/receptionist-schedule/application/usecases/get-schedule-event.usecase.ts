@@ -2,6 +2,7 @@ import { injectable } from 'inversify'
 import type { TxClient } from '@project/db/src/client'
 import { BaseUseCase } from '~/common/base/base-use-case.abstract'
 import { AppError } from '~/common/errors/app-error'
+import { localIsoDate } from '~/common/utils/date'
 import { IReceptionistScheduleRepository } from '../../domain/interfaces/receptionist-schedule.repository'
 import type { AvailableSlotOutput } from '../dtos/outputs/available-slot.output'
 
@@ -16,7 +17,7 @@ export class GetScheduleEventUseCase extends BaseUseCase<{ id: string }, Availab
       id:        slot.id,
       doctorId:  slot.doctorId,
       eventDate: typeof slot.eventDate === 'object' && slot.eventDate !== null
-        ? (slot.eventDate as Date).toISOString().split('T')[0]
+        ? localIsoDate(slot.eventDate as Date)
         : String(slot.eventDate),
       startTime: String(slot.startTime).slice(0, 5),
       endTime:   String(slot.endTime).slice(0, 5),
