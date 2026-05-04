@@ -34,8 +34,12 @@ function formatTime(value: string): string {
 }
 
 function formatDate(value: string | Date): string {
-  const d = value instanceof Date ? value : new Date(String(value) + 'T12:00:00')
-  return d.toLocaleDateString('es', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const dateOnly = value instanceof Date
+    ? value.toISOString().slice(0, 10)
+    : String(value).slice(0, 10)
+  return new Date(`${dateOnly}T00:00:00.000Z`).toLocaleDateString('es', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC',
+  })
 }
 
 export function ReservarCitaForm({ slot, isPast = false, onSuccess }: ReservarCitaFormProps) {

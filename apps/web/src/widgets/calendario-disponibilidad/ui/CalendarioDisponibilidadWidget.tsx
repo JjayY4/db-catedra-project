@@ -30,9 +30,10 @@ function isSlotPast(eventDate: string | Date, startTime: string): boolean {
   const pad      = (n: number) => String(n).padStart(2, '0')
   const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
   const dateStr  = eventDate instanceof Date
-    ? `${eventDate.getFullYear()}-${pad(eventDate.getMonth() + 1)}-${pad(eventDate.getDate())}`
-    : String(eventDate)
-  return dateStr < todayStr || (dateStr === todayStr && String(startTime).slice(0, 5) <= now.toTimeString().slice(0, 5))
+    ? eventDate.toISOString().slice(0, 10)
+    : String(eventDate).slice(0, 10)
+  const nowHm    = `${pad(now.getHours())}:${pad(now.getMinutes())}`
+  return dateStr < todayStr || (dateStr === todayStr && String(startTime).slice(0, 5) < nowHm)
 }
 
 export function CalendarioDisponibilidadWidget({

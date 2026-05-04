@@ -12,8 +12,11 @@ interface UnifiedExpedientePageProps {
   role: 'doctor' | 'receptionist'
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(`${dateStr}T00:00:00.000Z`).toLocaleDateString('es-ES', {
+function formatDate(value: string | Date): string {
+  const dateOnly = value instanceof Date
+    ? value.toISOString().slice(0, 10)
+    : String(value).slice(0, 10)
+  return new Date(`${dateOnly}T00:00:00.000Z`).toLocaleDateString('es-ES', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
